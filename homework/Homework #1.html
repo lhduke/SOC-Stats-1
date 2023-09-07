@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.3.353">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="L. Harvey">
+
+<title>Exercise-01</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+width: 0.8em;
+margin: 0 0.8em 0.2em -1em;  vertical-align: middle;
+}
+
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+}
+pre.numberSource { margin-left: 3em; padding-left: 4px; }
+div.sourceCode
+{ }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="Homework #1_files/libs/clipboard/clipboard.min.js"></script>
+<script src="Homework #1_files/libs/quarto-html/quarto.js"></script>
+<script src="Homework #1_files/libs/quarto-html/popper.min.js"></script>
+<script src="Homework #1_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="Homework #1_files/libs/quarto-html/anchor.min.js"></script>
+<link href="Homework #1_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="Homework #1_files/libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="Homework #1_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="Homework #1_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="Homework #1_files/libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+
+
+</head>
+
+<body class="fullcontent">
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Exercise-01</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>L. Harvey </p>
+          </div>
+  </div>
+    
+  
+    
+  </div>
+  
+
+</header>
+
+<section id="exercise-1.1" class="level2">
+<h2 class="anchored" data-anchor-id="exercise-1.1">Exercise 1.1</h2>
+<p>Try typing typeof(mtcars) and class(mtcars) in the console to see what happens.</p>
+<ol type="1">
+<li>typeof(mtcars) = No data listed, just “list” command.</li>
+<li>class(mtcars) = No data listed, just “list” command (again).</li>
+</ol>
+<p>Try typing the following chunks of code:</p>
+<ol type="1">
+<li>nrow(mtcars) = Populates with the number 32, indicating that there are 32 rows in this data frame.</li>
+<li>ncol(mtcars) = Populates with the number 11, indicating that there are 11 columns in this data frame.</li>
+<li>length(mtcars) = Populates with the number 11, indicating that the data frame has a “length” of 11. It’s not entirely clear what “length” is measuring in this context, but “length” could refer to the length of the chart (32 rows by 11 columns), making the “length” of the data frame 11 columns long.</li>
+<li>dim(mtcars) = Populates with the numbers 32 and 11, indicating that the dimension of the data frame is 32 rows by 11 columns.</li>
+<li>rownames(mtcars) = Populates with the names of the rows for the data frame: “Mazda RX4,” “Datsun 710,” etc.</li>
+<li>colnames(mtcars) = Populates with the names of the columns for the data frame: “mpg,” “cyl,” “hp,” etc.</li>
+</ol>
+</section>
+<section id="exercise-1.2" class="level1">
+<h1>Exercise 1.2</h1>
+<p>Using long-form code for logical vectors, try assigning a different value to TRUE than to T.</p>
+<ol type="1">
+<li>When I assigned 123 to both T and TRUE, I received an error message reading, “Error in TRUE &lt;-- 123 … left-hand side to assignment.”</li>
+</ol>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="cn">TRUE</span> <span class="ot">&lt;-</span> <span class="dv">123</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-error">
+<pre><code>Error in TRUE &lt;- 123: invalid (do_set) left-hand side to assignment</code></pre>
+</div>
+</div>
+</section>
+<section id="exercise-1.3" class="level1">
+<h1>Exercise 1.3</h1>
+<p>Practicing with atomic vectors using command c(): When inputting the code to create atomic vectors, a chart of values will populate in the “Environment” tab on R-Studio. The chart breaks down into two columns: The left, the values I entered (i.e. lgl, int, dbl), and the right, their corresponding data from the parenthesis in the raw code. Kinda neat!</p>
+<ol type="1">
+<li>lgl &lt;- c(TRUE, FALSE, NA)</li>
+<li>int &lt;- c(1L, 6L, NA, 10L)</li>
+<li>dbl &lt;-c(1, NA, 2.5, 4.5)</li>
+<li>chr &lt;- c(NA, “these are”, “some strings”)</li>
+</ol>
+<p>Practicing with implicit coercion (i.e. “different [vector?] types will be coerced into logical, then integer, then double, then character” types.</p>
+<ol type="1">
+<li>c(1, FALSE) = Based on coercion rules, I anticipate that this vector set will become an integer vector.</li>
+<li>c(“a”, 1) = I anticipate that this vector set will become a character vector.</li>
+<li>c(TRUE, 1L) = I anticipate that this will become a double vector.</li>
+</ol>
+</section>
+<section id="exercise-1.4" class="level1">
+<h1>Exercise 1.4</h1>
+<p>Practicing with explicit coercion—using as.integer() on FALSE and TRUE produces values of 0 for FALSE and 1 for TRUE. I tested to see if entering “TRUE” first changed whether or not it was assigned 1 or 0 and there was no difference. Also kinda neat!</p>
+</section>
+<section id="exercise-1.5" class="level1">
+<h1>Exercise 1.5</h1>
+<p>Learning how to create logical vectors:</p>
+<p>When inputting the example Andres included on the homework:<br>
+x &lt;- sample(c(TRUE, FALSE), size = 75, replace = TRUE and str(x), the next line of code is logical vectors for the data set (i.e. “False, True, True, True…” etc.)</p>
+<p>Use sum(x) to get the number of TRUE values: 37</p>
+<p>Use mean(x) to get the proportion of TRUE values: 0.4933333</p>
+<p>Verify that mean(x) and sum(x)/length(x) give the same value: 0.493333! They do!</p>
+<p><u>Practicing with Sequences:</u><br>
+Use seq() to create sequences of code.<br>
+seq(from = 2, to = 26, by = 2) produces an itemized, sequential list that skips every other number. Wahoo!</p>
+<p>You can also subset lists (and data frames) within the $ operator as a function. x<br>
+EX: mtcars$mpg produces a series of numerical lists.<br>
+<br>
+EX: But if we enter a different command—say, x &lt;- list(chr, lgl, letters)—then we get three different lists of three different, non-numerical information sets/vectors.</p>
+</section>
+<section id="exercise-1.6" class="level1">
+<h1>Exercise 1.6</h1>
+<p>What is the difference between mtcars[“mpg”] and mtcars[[“mpg”]]?</p>
+<ol type="1">
+<li>mtcars[“mpg”] = Produces an itemized, two-column list: cars and their mpgs.</li>
+<li>mtcars[[“mpg”]] = Produces a much uglier and harder-to-read output that lists rows of data from the data frame, without differentiating the column from which the data is being pulled.</li>
+</ol>
+<p>What is the difference between the [ and [[ operators?</p>
+<ol type="1">
+<li>The difference between the two kinds of operators is that the single [ ] provides the entire data set/data frame, whereas the [[ ]] operators pulls a segment from the data frame.</li>
+</ol>
+<p>Which of the following is TRUE?</p>
+<ol type="1">
+<li>identical(mtcars[[“mpg”]], mtcars$mpg) is true!</li>
+</ol>
+</section>
+<section id="exercise-1.7" class="level1">
+<h1>Exercise 1.7</h1>
+<p>Use the [ operator to do the following:</p>
+<ol type="1">
+<li>Extract the 17th value of letters: letters[17] gives us “q”.</li>
+<li>Create a sequence of even numbers from 2 to 26 and use that to subset letters: seq(from 2, to = 26, by = 2) gives us a lovely subset of 2, 4, … 26.</li>
+<li>Use 8:12 to subset letters: letters[8:12] gives us “h” “i” “j” “k” “l”.</li>
+<li>If I use [[ instead of [ in these exercises, I receive various errors: For letter[[17]], R tells me that there is an error because “object ‘letter’ not found,” and for letters[[8:12]], R gives me an error message that there was an “attempt to select more than one element in vectorIndex.”</li>
+</ol>
+</section>
+<section id="exercise-1.8" class="level1">
+<h1>Exercise 1.8</h1>
+<p>Replace the 18th value of letters with a missing value (NA).</p>
+<ol type="1">
+<li>The 18th value of letters (i.e. letters[18]) is r, to recode this as a missing value, enter: letters[18] &lt;- NA. Then a new entry in the global environment will populate, indicating that the change went through.</li>
+</ol>
+</section>
+<section id="exercise-1.9" class="level1">
+<h1>Exercise 1.9</h1>
+<ol type="1">
+<li>Subset mtcars so that we only see observations where cyl = 4. This reads as: mtcars$cyl == 4 (two == because R is finnicky). This then populates a few rows indicating which cars have a cylinder of 4.</li>
+<li>Subset mtcars so that we only see the observations for which mpg is greater than 23. This reads as:</li>
+</ol>
+</section>
+<section id="exercise-1.10" class="level1">
+<h1>Exercise 1.10</h1>
+<ol type="1">
+<li>When using the search() function incorrectly, I got two different errors. The first error was for including the # symbol in my original library search for the penguins (i.e. #library(tidyverse) followed by #library(palmerpenguins). By using the # symbol here, R was unable to identify the specific object I was searching for. The # symbol acts as a note to self or annotation in the code, NOT actually directions for how to find and display the information I was after.</li>
+<li>The second error was because I entered table(year) without specifying the subset I wanted to use to investigate my precious penguins. Without including the $ in order to indicate the subset that I wanted to search, R was unable to access the year vector I wanted to use.</li>
+<li>Lastly, the “year” object is found in the “lubridate” package.</li>
+</ol>
+</section>
+<section id="exercise-1.11" class="level1">
+<h1>Exercise 1.11</h1>
+<p>Slice and dice, baby! In order to pull out the even-numbered penguin rows, I entered the following command:<br>
+penguins |&gt;<br>
++ slice(3, 6, 9, 12, 15)<br>
+After plugging this command in, columns and rows populated, indicating the penguins’ “species,” “island,” “bill length,” etc., with each column listing the respective information for each critter.</p>
+</section>
+<section id="exercise-1.12" class="level1">
+<h1>Exercise 1.12</h1>
+<p>Use the filter to pull the observations in the penguins dataset for which species == Gentoo, island == Biscoe, and body mass is between 5,000 and 5,500.</p>
+<ol type="1">
+<li>The result for this command took forever. Damn penguins.</li>
+<li>Anyway, after a lot of futzing with the commands, I entered the following:<br>
+penguins |&gt;<br>
+
+<ul>
+<li>filter(species == “Gentoo” &amp; island == “Biscoe” &amp; body_mass_g &gt; 5000 &amp; body_mass_g &lt;5500<br>
+<br>
+After entering this command, 28+ rows and columns populated with the information on the lucky penguins who fit those search perimeters.</li>
+</ul></li>
+</ol>
+</section>
+
+</main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    text: function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  function tippyHover(el, contentFn) {
+    const config = {
+      allowHTML: true,
+      content: contentFn,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start'
+    };
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+</body></html>
