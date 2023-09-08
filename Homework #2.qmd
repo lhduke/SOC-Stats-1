@@ -1,0 +1,9 @@
+---
+title: "Homework #2"
+author: L. Harvey 
+embed-resources: true
+format: html
+editor: visual
+---
+
+## Exercise 2.1
