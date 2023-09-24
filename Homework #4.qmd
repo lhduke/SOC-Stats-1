@@ -1,0 +1,173 @@
+---
+title: "Homework #4"
+format: html
+author: L. Harvey 
+embed-resources: TRUE 
+editor: visual
+---
+
+```{r}
+library(tidyverse)
+library(ggplot2)
+theme_set(theme_light(base_family = "Avenir Next Condensed"))
+```
+
+# Exercise 4.1
+
+```{r}
+x <- rnorm(10000, mean = 0, sd = 1)
+mean(x >= -1 & x <= 1)
+mean(x >= -2 & x <= 2)
+mean(x >= 0)
+mean(x <= 0)
+```
+
+# Exercise 4.2
+
+```{r}
+quantile(x)
+```
+
+Running the above-listed code produces results ranging from -3.84 to 3.81. This tells us that the 0% of observations are less than -3.84, 25% of observations are less than -0.65, 50% of observations are less than 0.022, 75% of observations are less than 0.69, and 100% of observations are less than 3.81. I anticipate that this would graph as a normal distribution curve.
+
+# Exercise 4.3
+
+Now we're asked to "modify the probs argument in the quantile() to find the 0.5% and 99.5% percentiles of x."
+
+```{r}
+quantile(x, prob = c(.005, .995))
+```
+
+If we command the code to find the probability of the 0.% and 99.5% values of x, we receive answers of -2.59 and 2.50, respectively. This makes sense because the very tail ends of a normal distribution are about 2.5---this supports my earlier assumption that x would graph as a normal distribution with a typical bell curve.
+
+# Exercise 4.4
+
+```{r}
+mean(x >= -2.576 & x <= 2.576)
+```
+
+The ABOVE code is the correct one for this portion of the exercise. Prior to running the ABOVE code, I ran this incorrect one BELOW:
+
+```{r}
+mean(x = -2.576 & 2.576)
+```
+
+The incorrect x = -2.576 & 2.576 code is useless to us, because it tells us that there is 100% probability that x falls between the values of -2.576 and 2.576. As we only want the 99% probability, the first version of code listed is the correct one.
+
+# Exercise 4.5
+
+```{r}
+dresser <- tibble(sim = c(1:1000)) |> 
+  rowwise() 
+```
+
+```{r}
+dresser <- dresser |> mutate(simresults = sum(runif(n = 20, min = 0, max = 1)))
+```
+
+1000 simulation histogram code:
+
+```{r}
+ggplot(dresser, aes(x = simresults)) +
+  geom_histogram(color = "white")
+```
+
+# Exercise 4.6
+
+The quote, "sample sizes equal to or greater than 30 are often considered sufficient for the CLT to hold," means that samples with an n of at least 30 will manifest as a normal distribution. We understand CLT to mean that as a sample size increases, the distribution will approach a "normal" bell curve. Thus, an n of 30 will likely be sufficient to demonstrate CLT.
+
+Including Steve's simulation sample:
+
+```{r}
+set.seed(123)
+est_prop <- .33
+num_sims <- 1000
+svy_size <- 2247
+
+sims <- tibble(sim_num = 1:num_sims) |> 
+  uncount(svy_size) 
+
+sims <- sims |> 
+  mutate(conservative = rbinom(num_sims * svy_size, 1, est_prop)) |> 
+  group_by(sim_num) |> 
+  summarize(prop = mean(conservative))
+```
+
+## Using Steve's Simulation:
+
+Background simulation code for std_error:
+
+```{r}
+std_error <- sqrt((1/3) * (2/3) / svy_size)
+std_error
+```
+
+```{r}
+0.33 - 1.96*std_error
+```
+
+```{r}
+0.33 + 1.96*std_error
+```
+
+Great! It works!
+
+Now let's try changing svy_size from 2247 to 500:
+
+```{r}
+set.seed(123) 
+est_prop <- .33 
+num_sims <- 1000 
+svy_size <- 500
+
+sims500 <- tibble(sim_num = 1:num_sims) |> 
+  uncount(svy_size) 
+
+sims500 <- sims500 |> 
+  mutate(conservative = rbinom(num_sims * svy_size, 1, est_prop)) |> 
+  group_by(sim_num) |> 
+  summarize(prop = mean(conservative))
+```
+
+Testing the 95% confidence interval with svy_size = 500 (instead of Steve's 2247):
+
+```{r}
+std_error <- sqrt((1/3) * (2/3) / svy_size)
+std_error
+```
+
+```{r}
+0.33 - 1.96*std_error
+0.33 + 1.96*std_error
+```
+
+Huh, that was ugly. Let's try testing the 95% confidence interval with svy_size = 5000 (instead of the dastardly 500):
+
+```{r}
+set.seed(123) 
+est_prop <- .33 
+num_sims <- 1000 
+svy_size <- 5000
+
+sims5000 <- tibble(sim_num = 1:num_sims) |> 
+  uncount(svy_size) 
+
+sims5000 <- sims5000 |> 
+  mutate(conservative = rbinom(num_sims * svy_size, 1, est_prop)) |> 
+  group_by(sim_num) |> 
+  summarize(prop = mean(conservative))
+
+std_error <- sqrt((1/3) * (2/3) / svy_size)
+std_error
+```
+
+```{r}
+0.33 - 1.96*std_error
+0.33 + 1.96*std_error
+```
+
+**Answers:**
+
+After repeating Steve's simulation with different values of svy_size (500 and 5000), the 95% confidence interval for both the 500 and 5000 survey sizes were still roughly 2 standard errors away from 0.33. Granted, the 5000 survey size was a smoother distribution, but both tests support the CLT claim.
+
+This does not change my initial interpretation of the idea that "sample sizes equal to or greater than 30 are often considered sufficient for the CLT to hold"---in fact, it supports CLT. In short: more samples = smoother, more "normal" distributions.
