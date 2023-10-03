@@ -11,7 +11,13 @@ editor: visual
 Try typing typeof(mtcars) and class(mtcars) in the console to see what happens.
 
 1.  typeof(mtcars) = No data listed, just "list" command.
-2.  class(mtcars) = No data listed, just "list" command (again).
+
+```{r}
+typeof(mtcars)
+class(mtcars)
+```
+
+1.  class(mtcars) = No data listed, just "list" command (again).
 
 Try typing the following chunks of code:
 
@@ -31,6 +37,7 @@ Using long-form code for logical vectors, try assigning a different value to TRU
 ```{r}
 #| error: true
 TRUE <- 123
+T <- 123
 ```
 
 # Exercise 1.3
