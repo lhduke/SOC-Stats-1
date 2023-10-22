@@ -1,0 +1,399 @@
+---
+title: "Homework Week #7"
+format: html
+author: L. Harvey 
+embed-resources: TRUE 
+echo: TRUE 
+editor: visual
+---
+
+# Homework --- Week #7
+
+## Background Code
+
+```{r}
+library(tidyverse)
+library(gssr)
+library(janitor)
+library(conflicted)
+conflicts_prefer(dplyr::filter)
+library(infer)
+
+gss18 <- gss_get_yr(2018) 
+
+d <- gss18 |> 
+  select(attend, polviews) |> 
+  haven::zap_missing() |> 
+  haven::zap_labels() |> 
+  drop_na() |> 
+  mutate(weekly = if_else(attend >= 7, 1L, 0L),
+         attends = if_else(weekly == 1, "Weekly", "Not Weekly"),
+         conservative = if_else(polviews >= 5, 1L, 0L),
+         polview_chr = if_else(conservative==1, "Conservative", "Not Conservative")) |> 
+  relocate(attends,weekly,polview_chr,conservative)
+```
+
+## Exercise 7.1.1
+
+```{r}
+# Let's look at the table for the relevant data: 
+table(conservative = d$conservative, weekly = d$weekly)
+```
+
+### Question #1: What is the probability that a person attends religious services weekly?
+
+```{r}
+# To figure out the probability that a person attends religious services weekly, we want to find the probability of W, which can be rewritten as Pr(W). 
+
+tabyl(d, weekly)
+total_sample <- nrow(d)
+churchy <- 497/total_sample*100
+
+churchy
+
+# The probability of someone attending church is 22.24% 
+```
+
+### Question #2: What is the probability that a person *does not* attend religious services weekly?
+
+```{r}
+# In order to find the probabiliy that a person does NOT attend religious services weekly, we simply subtract the complement of churchy/total from 1 (keeping in mind that probability is from 0 to 1). 
+
+100 - churchy
+
+# The probability of someone NOT attending church weekly is 77.76% 
+```
+
+### Question #3: What is the probability that a person is conservative, given that they attend religious services weekly?
+
+```{r}
+# This starts to get a bit trickier. Now we want to find the probability that someone is conservative, given that they attend weekly services. This can be written as Pr(C|W). 
+### This is joint probability! 
+
+tabyl(d, attends, polview_chr) |> 
+  adorn_percentages(denominator = "row")
+
+# Given that someone attends religious services weekly, the probability that they are conservative is 48.28%
+```
+
+### Question #4: What is the probability that a person attends religious services weekly, given that they are conservative?
+
+```{r}
+# Again, we want to understand this as a joint probability. This can be rewritten as Pr(W|C). 
+
+tabyl(d, attends, polview_chr) |> 
+  adorn_percentages(denominator = "col")
+
+# Given that someone is conservative, the probability that they attend religious services weekly is 32.65%. 
+```
+
+### Question #5: What is the probability that a person is conservative, given that they do NOT attend religious services weekly?
+
+```{r}
+tabyl(d, attends, polview_chr) |> 
+  adorn_percentages(denominator = "row")
+
+# Given that someone does NOT attend religious services weekly, the probability that they are conservative is 28.48%
+```
+
+### Question #6: What is the probability that a person attends religious services weekly and is conservative?
+
+```{r}
+table(conservative = d$conservative, weekly = d$weekly)
+
+# The probability that a person attends religious services weekly and is conservative is 10.74%
+```
+
+### Question #7: What is the probability that a person does NOT attend religious services weekly and is NOT conservative?
+
+```{r}
+table(conservative = d$conservative, weekly = d$weekly)
+
+# The probability that a person does NOT attend religious services weekly and is NOT conservative is 55.62%
+```
+
+### Question #8: If W and C were independent, what would the joint probability of W and C be?
+
+```{r}
+table(conservative = d$conservative, weekly = d$weekly)
+
+# Multiply Pr(W) = 0.22 by Pr(C) = 0.33 
+
+### If W and C were independent, the joint probability would be the multiplication of both varibles; the answer is 7.29%
+```
+
+## Exercise 7.1.2
+
+Selecting new variables: Respondent's identified sex (sex) and if their self-reported happiness level (happy)
+
+```{r}
+d2 <- gss18 |> 
+  select(sex, happy) |> 
+  haven::zap_missing() |> 
+  haven::zap_labels() |> 
+  drop_na() |> 
+  mutate(female = if_else(sex == 2, 1L, 0L),
+         female_chr = if_else(sex == 2, "Female", "Male"),
+         is_happy = if_else(happy <= 2, 1L, 0L),
+         is_happy_chr = if_else(happy <= 2, "Not Happy", "Happy")) |>
+  relocate(female,female_chr,is_happy,is_happy_chr)
+```
+
+```{r}
+# Creating a table 
+table(sex = d2$sex, happy = d2$is_happy)
+```
+
+### Question #1: What is the probability that a person is happy? AKA: Pr(H)
+
+```{r}
+table(sex = d2$sex, happy = d2$is_happy) 
+
+2008 / 2344 * 100 
+# The probability of someone being happy is 85.67%. 
+```
+
+### Question #2: What is the probability that a person is *not* happy? 
+
+```{r}
+336 / 2344 * 100
+# The probability of a person not being happy is 14.33% :(( 
+```
+
+### Question #3: What is the probability that a person is happy, given that they are female? 
+
+```{r}
+table(sex = d2$sex, happy = d2$is_happy)
+
+894 / 1050 * 100
+# The probability that a person is happy, given that they are female, is 85.14%
+```
+
+### Question #4: What is the probability that a person is female, given that they are happy? 
+
+```{r}
+894 / 2008 * 100 
+# The probability that a person is female, given that they are happy, is 44.5%
+```
+
+### Question #5: What is the probability that a person is happy, given that they are *not* female? 
+
+```{r}
+ 1114 / 1249 * 100
+ # The probability that a person is happy, given that they are not female, is 89.19%
+```
+
+### Question #6: What is the probability that someone is happy AND a female? 
+
+```{r}
+894 / 2344 * 100 
+# The probability that someone is happy AND a female is 38.14%
+```
+
+### Question #7: What is the probability that someone is *not* happy AND *not* a female? 
+
+```{r}
+180 / 2344 * 100
+# The probability that someone is unhappy AND not a female is 7.68% 
+```
+
+### Question #8: If Female and Happiness were independent, what would their joint probability be? 
+
+```{r}
+table(sex = d2$sex, happy = d2$is_happy)
+
+# If the two variables are independent, then we multiply them by each other: 
+## Pr(H) = .8566 and Pr(F) = .448
+
+0.8566 * 0.448
+# The joint probability would be 0.448 or 44.8% 
+```
+
+## Exercise 7.2.1
+
+Looking at the weekly vs. conservative contingency table, focus on the probabilities of Pr(W\|C) and Pr(W\|C\^c) and analyze them using summary statistics for the following tests.
+
+As a recap: The probabilities of Pr(W\|C) = .3265 and Pr(W\|C\^c) = 257/1500 = .1713
+
+### Difference in Probabilities 
+
+```{r}
+# To find the difference in probabilities between the two items above, just subtract:
+0.3265 - .1713
+# The difference in probabilites is 0.1552 
+```
+
+### Relative Risk Ratio 
+
+```{r}
+# To find the relative risk ratio, we want to divide the probabilities: 
+0.3265 / .1713
+# The RRR of Pr(W|C) divided by Pr(W|C^c) is 1.906
+```
+
+### Odds Ratio 
+
+```{r}
+# To find an odds ratio, we need to first find the odds for each of the variables we're examining. To do that, we want to find 
+
+# To find the odds that a conservative attends religious services weekly 
+numerator <- 0.3265 / (1 - 0.3265)
+numerator 
+
+# Now find the odds that a non-conservative attends religious services weekly
+denominator <- 0.1713 / (1 - 0.1713)
+denominator 
+
+# Finally, divide the numerator by the denominator to find the odds ratio 
+numerator / denominator 
+
+# Thus, the odds ratio is 2.34 
+```
+
+### Log Odds Ratio 
+
+```{r}
+# To find the log odds ratio, we want to take the natural log of the odds ratio we just solved for above: 
+log(numerator / denominator)
+# This gives us a natural log of 0.8524
+```
+
+## Exercise 7.2.2 
+
+Now we want to "draw a 'simulation-based bootstrap distribution' for the difference in proportions between Pr(W\|C) and Pr(W\|C\^c) by examining the RRR and Odds Ratio for this sample.
+
+### RRR Sampling Distribution 
+
+```{r}
+d <- d |> 
+  select(attend, polviews) |> 
+  haven::zap_missing() |> 
+  haven::zap_labels() |> 
+  drop_na()
+
+d <- d |> 
+  mutate(new_polviews = if_else(polviews == 1, "conservative", "other"), new_weekly = if_else(attend == 1, "weekly", "other"))
+
+diff_boot_props <- d |> 
+  specify(new_weekly ~ new_polviews, success = "weekly") |> 
+  generate(reps = 1000, type = "bootstrap") |> 
+  calculate(stat = "ratio of props", order = c("conservative", "other"))
+
+rrr_ci <- get_confidence_interval(diff_boot_props)
+
+diff_boot_props |>  
+  visualize() + 
+  shade_ci(rrr_ci)
+```
+
+### Odds Ratio Sampling Distribution 
+
+```{r}
+boot_odds <- d |> 
+  mutate(polviews = if_else(polviews == 1L, "conservative", "other")) |> 
+  mutate(attend = if_else(attend == 1L, "weekly", "not_weekly")) |> 
+  specify(attend ~ polviews, success = "weekly") |> 
+  generate(reps = 1000, type = "bootstrap") |> 
+  calculate(stat = "odds ratio", order = c("conservative", "other"))
+
+ci_or <- get_confidence_interval(boot_odds)
+
+boot_odds |> 
+  visualize() +
+  shade_ci(ci_or)
+```
+
+## Exercise 7.2.3 
+
+```{r}
+# Pulling the contingency table from exercise 7.1.2 
+table(sex = d2$sex, happy = d2$is_happy) 
+```
+
+### Difference in Probabilities 
+
+As a recap: The probabilities of Pr(H\|F) = .8514 = and Pr(H\|F\^c) = .8919
+
+```{r}
+# To find the difference in probabilities, subtract: 
+.8919 - .8514 
+# The difference in probabilities is 0.0405
+```
+
+### Relative Risk Ratio 
+
+```{r}
+# To find the RRR, we want to divide the probabilities: 
+.8919 / .8514
+# The RRR is 1.0476
+```
+
+### Odds Ratio 
+
+```{r}
+# To find the odds ratio for these variables, we need to find the odds for each of the variables we're examining: 
+
+# To find the odds that a female is happy: 
+female_numerator <- .8514 / (1 - .8514)
+female_numerator 
+
+# To find the odds that a non-female is happy: 
+male_denominator <- .8919 / (1 - .8919)
+male_denominator
+
+# Finally, divide the numerator by the denominator to find the odds ratio 
+female_numerator / male_denominator 
+
+# The odds ratio is 0.6944
+```
+
+### Log Odds Ratio 
+
+```{r}
+# To find the log odds of the variables, take the natural log of the odds ratio we just found above: 
+log(female_numerator / male_denominator)
+# The log odds is -0.3646
+```
+
+## Exercise 7.2.4 
+
+### RRR Sampling Distribution 
+
+```{r}
+d2 <- d2 |> 
+  select(sex, happy) |> 
+  haven::zap_missing() |> 
+  haven::zap_labels() |> 
+  drop_na()
+
+d2 <- d2 |> 
+  mutate(new_happy = if_else(happy == 1, "happy", "other"), new_sex = if_else(sex == 1, "female", "other"))
+
+diff_boot_props <- d2 |> 
+  specify(new_happy ~ new_sex, success = "happy") |> 
+  generate(reps = 1000, type = "bootstrap") |> 
+  calculate(stat = "ratio of props", order = c("female", "other"))
+
+rrr_ci2 <- get_confidence_interval(diff_boot_props)
+
+diff_boot_props |>  
+  visualize() + 
+  shade_ci(rrr_ci2)
+```
+
+### Odds Sampling Distribution 
+
+```{r}
+sex_boot_odds <- d2 |> 
+  mutate(new_happy = if_else(happy == 1L, "happy", "other")) |> 
+  mutate(new_sex = if_else(sex == 1L, "female", "other")) |> 
+  specify(new_happy ~ new_sex, success = "happy") |> 
+  generate(reps = 1000, type = "bootstrap") |> 
+  calculate(stat = "odds ratio", order = c("female", "other"))
+
+ci_or_2 <- get_confidence_interval(boot_odds)
+
+sex_boot_odds |> 
+  visualize() +
+  shade_ci(ci_or_2)
+```
