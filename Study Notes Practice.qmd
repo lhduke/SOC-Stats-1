@@ -1,0 +1,37 @@
+---
+title: "Study Notes Practice"
+author: L. Harvey 
+embed-resources: TRUE 
+format: html
+editor: visual
+### "echo: FALSE" stops the code from appearing in the HTML document when I render this file. 
+echo: FALSE 
+### Inputting "error: TRUE" here so that even when my code is busted, I'm able to render the document and figure out what I did wrong. 
+error: TRUE 
+---
+
+## This document is for practicing my R literacy. And awaaaay we go! 
+
+### Important Background Code: 
+
+```{r}
+# Tidyverse = A GOATed R programming package 
+library(tidyverse)
+# GSSR = General Social Survey loaded into the document for practice tables. 
+library(gssr)
+# Janitor = A programming package used to clean up "dirty" data and make it easier to read. 
+library(janitor)
+# Conflicted = Makes every issue in the code populate as an "error" and forces users to fix the issue with the appropriate function(s). 
+library(conflicted)
+# Infer = Used to perform statistical inferences 
+library(infer)
+```
+
+### Practicing coding functions:
+
+```{r}
+# Creating a function with the name new_function: 
+new_function <- function() {print("Hello, World!")}
+## Calling the function in order to execute its command: 
+new_function
+```

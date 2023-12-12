@@ -1,0 +1,259 @@
+---
+title: "Homework #10"
+author: L. Harvey 
+format: html
+embed-resources: TRUE
+editor: visual
+---
+
+# Homework #10 
+
+## General Background Code
+
+```{r}
+library(conflicted)
+conflicts_prefer(dplyr::filter)
+library(tidyverse)
+library(infer)
+library(janitor)
+library(gssr)
+install.packages("gt")
+```
+
+## Andres' Background Code
+
+```{r}
+library(tidyverse)
+theme_set(theme_light(base_family = "Optima"))
+
+library(modelsummary)
+library(broom)
+library(gt)
+
+library(gssr)
+gss18 <- gss_get_yr(2018) 
+
+d <- gss18 |> 
+  select(attend, polviews, cappun, degree) |> 
+  haven::zap_missing() |> 
+  mutate(across(!degree, haven::zap_labels)) |> 
+  mutate(degree = haven::as_factor(degree)) |> 
+  mutate(
+    weekly = if_else(attend >= 7, 1L, 0L),
+    polviews = polviews - 4,
+    cappun = if_else(cappun == 1, 1L, 0L),
+    ) |> 
+  mutate(conservative = as.integer(polviews > 0)) |> 
+  drop_na() 
+
+mod <- glm(cappun ~ conservative + weekly, data = d, family = "binomial")
+
+d
+mod
+```
+
+## Exercise 10.3.1 
+
+Model 1:
+
+```{r}
+m1 <- model.matrix(cappun ~ polviews + weekly + polviews:weekly, data = d)
+head(m1)
+dim(m1)
+```
+
+The first model has four parameters: alpha ("Intercept"), beta1 ("polviews"), beta2 ("weekly"), and beta3 (for the interaction between beta1 ("polviews") and beta 3 ("weekly"). "Weekly" is binary and is thus coded as 1s and 0s, with the interaction happening when "weekly" = 1 and "polviews" = 3.
+
+Model 2:
+
+```{r}
+m2 <- model.matrix(cappun ~ polviews * weekly, data = d)
+head(m2)
+dim(m2)
+```
+
+The second model populates exactly the same as the first. Again, here we see that the interaction here occurs when "weekly" = 1 and "polviews" = 3.
+
+Model 3:
+
+```{r}
+m3 <- model.matrix(cappun ~ degree, data = d)
+head(m3)
+dim(m3)
+```
+
+The third model creates a bunch of binary categories: "high school", "associate/junior college", "bachelor's", and "graduate". Dissimilar to models 1 and 2, there is no specific interaction that populates here---just a presentation of the data.
+
+## Exercise 10.3.2 
+
+Model Code!
+
+```{r}
+mod1 <- glm(cappun ~ conservative + weekly, data = d, family = "binomial")
+mod2 <- glm(cappun ~ conservative * weekly, data = d, family = "binomial")
+mod3 <- glm(cappun ~ polviews + weekly, data = d, family = "binomial")
+mod4 <- glm(cappun ~ polviews * weekly, data = d, family = "binomial")
+```
+
+Summary Code:
+
+```{r}
+msummary(list(mod1, mod2, mod3, mod4), output = "gt") |> 
+  opt_table_font(font = "Optima")
+```
+
+[Analyzing the BIC and AIC from the chart above reads as follows:]{.underline}
+
+The lowest AIC in this graph is for mod4, which means that its AIC of 2609.4 is the best fit for the model. However, the next-lowest AIC for the graph is for mod3 (2610.7), which tells us that the interaction between polviews x weekly impacts the out-of-sample deviance here.
+
+The lowest BIC in this graph is mod3 (2627.7), making it a better fit than the other models.
+
+In sum: Mod1 and mod2 have similar AIC and BIC results, and mod3 and mod4 also have similar values for their respective AIC and BIC scores. Given that mod3 and mod4 have lower AIC *and* BIC scores, these models are the better fit than mods 1 and 2.
+
+[Analyzing the log-odds of the chart:]{.underline}
+
+1.  Model 1 = The log-odds of supporting capital punishment when conservative == 0 and weekly == 0 (i.e. someone is both not conservative and doesn't attend religious services weekly) is 0.358.
+2.  Model 2 = The log-odds of supporting capital punishment when conservative == 0 and weekly == 0 (i.e. someone who is both not conservative and doesn't attend religious services weekly) is 0.341.
+3.  Model 3 = The log-odds of supporting capital punishment when polviews == 0 and weekly == 0 (i.e. someone who is moderate and doesn't attend religious services weekly) is 0.666.
+4.  Model 4 = The log-odds of supporting capital punishment when polviews == 0 and weekly == 0 (i.e. someone who is moderate and doesn't attend religious services weekly) is 0.677.
+
+Lastly: Looking at mod4, the predicted probability that a "slightly conservative" individual that attends religious ceremonies weekly **favors** capital punishment can be figured out with the following code:
+
+```{r}
+polviews <- 1 # "Slightly conservative" = 1
+weekly <- 1 # "Attends services weekly" = 1
+ 
+log_odds <- coef(mod4)["(Intercept)"] + 
+  coef(mod4)["polviews"]*polviews + 
+  coef(mod4)["weekly"]*weekly + 
+  coef(mod4)["polviews:weekly"]*polviews*weekly
+
+# After creating the log_odds value: 
+predict_prob <- 1 / (1 + exp(-log_odds))
+predict_prob
+```
+
+Thus, the predicted probability is: 0.629.
+
+## Exercise 10.3.3
+
+```{r}
+# Creating the set-up:
+d <- d |> 
+  mutate(polviews2 = case_when(polviews < 0 ~ "Liberal",
+                               polviews == 0 ~ "Moderate",
+                               polviews > 0 ~ "Conservative")) |> 
+  mutate(polviews2 = haven::as_factor(polviews2))
+
+# Now the models: 
+d$polviews2 <- relevel(d$polviews2, ref = "Conservative")
+model_1 <- glm(cappun ~ polviews2 + weekly, data = d, family = "binomial")
+
+d$polviews2 <- relevel(d$polviews2, ref = "Liberal")
+model_2 <- glm(cappun ~ polviews2 + weekly, data = d, family = "binomial")
+
+d$polviews2 <- relevel(d$polviews2, ref = "Moderate")
+model_3 <- glm(cappun ~ polviews2 + weekly, data = d, family = "binomial")
+
+# Summary: 
+msummary(list(model_1, model_2, model_3), gof_map = "none", output = "gt") |> 
+  opt_table_font(font = "Optima")
+```
+
+[Interpretation Time:]{.underline}
+
+1.  **Model 1** = In this model, the reference category is "conservatives." Here, the beta is -0.468, meaning that (when compared to conservatives), moderates have 0.468 lower logged odds of supporting capital punishment. The beta for liberals, in contrast, is -1.362, meaning that (when compared to conservatives), liberals have 1.362 lower logged odds of supporting capital punishment.
+2.  **Model 2** = In this model, the reference category is "liberals." Here, the beta is 0.894, meaning that (when compared to liberals), moderates have 0.894 higher logged odds of supporting capital punishment. The beta for conservatives, however, is 1.362, meaning that (when compared to liberals), conservatives have 1.362 greater logged odds of supporting capital punishment.
+3.  **Model 3** = In this model, the reference category is "moderates." Here, the beta is -0.894, meaning that (when compared to moderates), liberals have 0.894 lower logged odds of supporting capital punishment. The beta for conservatives is 0.468, meaning that (when compared to moderates), conservatives have 0.468 greater logged odds of supporting capital punishment.
+
+All models have a beta of -0.417 for "weekly attendance," meaning that (when compared to folks who **DO NOT** attend weekly religious services) folks that **DO** attend weekly religious services have 0.417 lower logged odds of supporting capital punishment.
+
+## Exercise 10.3.4
+
+Fill in the conditional probabilities on the following table:
+
+```{r}
+# Estimating the saturated model with the homework code: 
+d |> 
+  group_by(weekly, polviews) |> 
+  summarize(p = mean(cappun)) 
+
+# Calculating the restricted model: 
+glm(cappun ~ weekly + polviews, data = d, family = "binomial")
+```
+
+Now let's use the table and plogis to plug in alpha and betas:
+
+```{r}
+# 0 weekly and liberal: 
+plogis(-0.124)
+# 0 weekly and moderate: 
+plogis(-0.124 + 0.894)
+# 0 weekly and conservative: 
+plogis(-0.123 + 1.363)
+
+# 1 weekly and liberal: 
+plogis(-0.124 - 0.417)
+# 1 weekly and moderate: 
+plogis(-0.124 + 0.894 - 0.417)
+# 1 weekly and conservative: 
+plogis(-0.124 + 1.36 - 0.417)
+```
+
+|                        |              |                 |                  |
+|------------------------|--------------|-----------------|------------------|
+| Filling in the table:  |              |                 |                  |
+| `weekly`               | `polviews2`  | Saturated Model | Restricted Model |
+| 0                      | liberal      | 0.459           | 0.469            |
+| 0                      | moderate     | 0.685           | 0.684            |
+| 0                      | conservative | 0.783           | 0.776            |
+| 1                      | liberal      | 0.419           | 0.368            |
+| 1                      | moderate     | 0.579           | 0.587            |
+| 1                      | conservative | 0.678           | 0.694            |
+
+## Exercise 10.3.5 
+
+For this exercise, we're asked to find an outcome variable and two predictor variables. I'm interested in finding if a respondent considers themselves to be politically conservative, based on their sex and race. \
+**Outcome: \
+** 1. polviews = Does the respondent consider themselves to be politically liberal or conservative; this was \
+recoded into "Not Conservative" (0) or "Conservative" (1). **\
+Predictors: \
+** 1. race = Race of respondent, recoded into "White" (0) or "Non-White" (1) \
+2. sex = The sex of the respondent, recoded into "Female" (0) or "Male" (1)
+
+```{r}
+# Making the new data frame: 
+d3 <- gss18 |> 
+  select(polviews, race, sex) |> 
+  haven::zap_missing() |> 
+  mutate(
+    conservative = if_else(polviews == 7, 1L, 0L), 
+    polviews = if_else(conservative == 1, "Conservative", "Not Conservative"), 
+    new_race = if_else(race == 1, 1L, 0L), 
+    race = if_else(new_race == 1, "Non-White", "White"), 
+    new_sex = if_else(sex == 1, 1L, 0L), 
+    sex = if_else(new_sex == 1, "Male", "Female")
+    ) |> 
+  drop_na() 
+```
+
+Now let's create and compare the models:
+
+```{r}
+# Creating the new models: 
+lastmod1 <- glm(conservative ~ new_sex, data = d3, family = "binomial")
+lastmod2 <- glm(conservative ~ new_sex + new_race, data = d3, family = "binomial")
+
+# Comparing the models: 
+msummary(list(lastmod1, lastmod2), output = "gt") |> 
+  opt_table_font(font = "Optima")
+
+library(lmtest)
+lrtest(lastmod1, lastmod2)
+```
+
+When comparing the AIC of the models, Model 2 reigns supreme, but just barely (M2 = 814.3 while M1 = 815.5). When comparing the BIC of the models, however, Model 1 is the better fit and has better out-of-sample predictive accuracy (again, but only by a slight margin, with M1 = 827.0 and M2 = 831.4). The chi-squared p-value of 0.07 indicates that the results are insignificant (womp womp).
+
+The relationship between the outcome variable ("conservative") and its predictors ("race" and "sex") are as follows: The absolute value of Model 1 is 405.77, while the absolute value of Model 2 is 404.13. Thus, we see that there is barely any causal impact with gender predicting political conservatism and gender AND race predicting political conservatism.
+
+(I don't feel confident that I'm interpreting this correctly---Andres, could you help me clarify this?)

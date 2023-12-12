@@ -1,0 +1,312 @@
+---
+title: "Homework #9"
+format: html
+author: L. Harvey
+embed-resources: TRUE 
+echo: FALSE
+editor: visual
+---
+
+## Homework #9
+
+### Background Code
+
+```{r}
+library(tidyverse)
+library(gssr)
+theme_set(theme_light(base_family = "Optima"))
+
+gss18 <- gss_get_yr(2018) 
+
+d <- gss18 |> 
+  select(attend, polviews, cappun) |> 
+  haven::zap_missing() |> 
+  haven::zap_labels() |> 
+  mutate(
+    weekly = if_else(attend >= 7, 1L, 0L),
+    conservative = if_else(polviews >= 5, 1L, 0L),
+    cappun = if_else(cappun == 1, 1L, 0L)
+    ) |> 
+  drop_na() |> 
+  select(cappun, weekly, conservative) 
+```
+
+### Exercise 9.1.1
+
+```{r}
+# Let's start with a recap of the 2x2 contingency tables using the "cappun" and "weekly" variables we just recoded. Using Andres' code: 
+crosstab1 <- table(cp = d$cappun, weekly = d$weekly)
+crosstab1
+```
+
+#### Expressing cappun (Y) / weekly (X) as a linear probability model
+
+```{r}
+# To express the relationship between cappun and weekly as a linear probability model, we first have to calculate the corresponding coefficients for each of the variables. In order to do that, let's find Alpha. 
+
+# The Alpha equation is: Given X = 0, what's the probability that Y = 1? 
+Alpha <- 1050 / 1637 
+Alpha
+
+# Now let's find Beta using the following equation: Pr(Y=1|X=1) - Pr(Y=1|X=0). First we find the first part of the equation: 
+FirstProb <- 277 / 465 
+# Then the second part of the equation, using what we just solved for alpha above: 
+FirstProb - Alpha
+
+#Thus, our Alpha is 0.6414 and our Beta is -0.0457
+
+# If we wanted to express this as a linear probability model: p = Alpha + Beta(x)
+### The linear probability model for cappun / weekly is: p = 0.6414 -0.0457x 
+```
+
+#### Expressing cappun (Y) / weekly (X) as a logistic regression model
+
+```{r}
+# Let's first find log Alpha: 
+LogAlpha <- log((1050/1637) / (587/1637))
+LogAlpha
+
+# Now let's find the log Beta: 
+LogBeta <- log((277/465) / (188/465)) - LogAlpha
+LogBeta
+
+# If we wanted to express this as a logistic regression model: p = 0.5812 - 0.1939x
+```
+
+### Exercise 9.1.2
+
+```{r}
+# Now let's make a 2x2x2 contingency table, a la Andres' code: 
+crosstab2 <- table(cp = d$cappun, weekly = d$weekly, conservative = d$conservative)
+crosstab2
+
+# We can also view this as it was presented in Steve's slides earlier this week: 
+as_tibble(crosstab2) |> 
+  mutate(cp = if_else(cp == "1", "favors", "opposes")) |> 
+  pivot_wider(names_from = cp, values_from = n)
+```
+
+Now that it's a 2x2**x2** contingency table, we want to repeat the exercise from 9.1.1 with all three variables.
+
+#### Expressing cappun (Y), weekly (X1), and conservative (X2) as a linear probability model
+
+```{r}
+# To calculate Alpha, we want to find Pr(Y = 1 | X1 = 0 and X2 = 0)
+LPM_Alpha <- 682 / (485+682)
+LPM_Alpha
+
+# To calculate Beta1: Pr(Y = 1 | X1 = 1 and X2 = 0) - Alpha 
+Beta1 <- 123 / (115+123) - LPM_Alpha
+Beta1
+  
+# Beta2: Pr(Y = 1 | X1 = 0 and X2 = 1) - Alpha 
+Beta2 <- 368 / (102+368) - LPM_Alpha
+Beta2
+
+# Beta3: Pr(Y = 1 | X1 = 1 and X2 = 1) - Beta1 - Beta2 - Alpha 
+Beta3 <- 154 / (73+154) - Beta1 - Beta2 - LPM_Alpha
+Beta3
+```
+
+We now know that Alpha = 0.584, Beta1 = -0.068, Beta2 = 0.199, and Beta3 = -0.037.
+
+Thus, the linear probability model to express the probability of favoring capital punishment is:\
+Pr(Favor) = 0.584 - 0.068 + 0.199 - 0.037
+
+#### Expressing cappun (Y), weekly (X1), and conservative (X2) as a logistic regression model
+
+```{r}
+# To find the logarithms of this fancy 2x2x2 table, we want to take the log of the "favor"/"oppose" for each of the coordinating portions of the table. 
+
+# Starting with alpha, wherein Y = 1 where X1 = 0 and X2 = 0 
+LRM_Alpha <- log(682/485)
+LRM_Alpha
+  
+# Beta1: Wherein Y = 1 | X1 = 1 and X2 = 0 - Alpha 
+LRM_B1 <- log(123/115) - LRM_Alpha
+LRM_B1
+  
+# Beta2: Wherein Y = 1 | X1 = 0 and X2 = 1 - Alpha 
+LRM_B2 <- log(368/102) - LRM_Alpha
+LRM_B2
+
+#Beta3 
+LRM_B3 <- log(154/73) - LRM_B1 - LRM_B2 - LRM_Alpha
+LRM_B3
+```
+
+We now know that Alpha = 0.341, Beta1 = -0.274, Beta2 = 0.942, and Beta3 = --0.263.
+
+Thus, the logistic regression model to express the probability of favoring capital punishment is:\
+Log(Favor) = 0.341 - 0.274 + 0.942 - 0.263
+
+### Exercise 9.2: GSS (My Choice of Variables)
+
+This time around, let's run a 2x2x2 table with whatever three GSS variables I choose. I choose to use "polviews" (Y), "degree" (X1) and "race" (X2), and they're recoded as follows:
+
+```{r}
+# Recoding these bad boys: 
+harveytable <- gss18 |> 
+  select(polviews, degree, race) |> 
+  haven::zap_missing() |> 
+  haven::zap_labels() |> 
+  drop_na() |> 
+  mutate(conservative = if_else(polviews == 7, 1L, 0L), 
+         polviews = if_else(conservative == 1, "Conservative", "Not Conservative"), 
+         new_degree = if_else(degree == 1, 1L, 0L), 
+         degree = if_else(new_degree <= 5, "HS or Less", "BA or More"), 
+         new_race = if_else(race == 1, 1L, 0L), 
+         race = if_else(new_race == 1, "1 / White", "0 / Not White")) |> 
+  relocate(polviews, conservative, degree, new_degree, race, new_race)
+```
+
+Having recoded them, now let's assemble the fancy 2x2x2 table:
+
+```{r}
+# Now let's make a 2x2x2 contingency table, a la Andres' code: 
+twotab <- table(cp = harveytable$conservative, new_degree = harveytable$new_degree, race = harveytable$race)
+twotab
+
+# Now let's clock this same table the way that Steve had it set up: 
+as_tibble(twotab) |> 
+  mutate(cp = if_else(cp == "1", "Conservative", "Not Conservative")) |> 
+  pivot_wider(names_from = cp, values_from = n)
+```
+
+#### Expressing polviews (Y), degree (X1), and race (X2) as a linear probability model
+
+```{r}
+# To calculate Alpha, we want to find Pr(Y = 1 | X1 = 0 and X2 = 0)
+A_Boop <- 8 / (283+8)
+A_Boop
+
+# To calculate Beta1: Pr(Y = 1 | X1 = 1 and X2 = 0) - Alpha 
+Boop1 <- 301 / (301+11) - A_Boop
+Boop1
+  
+# Beta2: Pr(Y = 1 | X1 = 0 and X2 = 1) - Alpha 
+Boop2 <- 797 / (797+36) - A_Boop 
+Boop2
+
+# Beta3: Pr(Y = 1 | X1 = 1 and X2 = 1) - Beta1 - Beta2 - Alpha 
+Boop3 <- 767 / (767+44) - Boop1 - Boop2 - A_Boop 
+Boop3
+```
+
+We find that Alpha = 0.0275, Beta1 = 0.0938, Beta2 = 0.929, and Beta3 = -0.948.
+
+Thus, the linear probability model to express the probability of being conservative is:\
+Pr(Conservative) = 0.0275 +0.0938 + 0.929 - 0.948
+
+#### Expressing polviews (Y), degree (X1), and race (X2) as a logistic regression model
+
+```{r}
+# To find the logarithms of this fancy 2x2x2 table, we want to take the log of the "conservative"/"non-conservative" for each of the coordinating portions of the table. 
+
+# Starting with alpha, wherein Y = 1 where X1 = 0 and X2 = 0 
+Alpha_Dos <- log(8/283)
+Alpha_Dos
+  
+# Beta1: Wherein Y = 1 | X1 = 1 and X2 = 0 - Alpha 
+LRM_Boop1 <- log(11/301) - Alpha_Dos
+LRM_Boop1
+  
+# Beta2: Wherein Y = 1 | X1 = 0 and X2 = 1 - Alpha 
+LRM_Boop2 <- log(36/797) - Alpha_Dos
+LRM_Boop2
+
+#Beta3 
+LRM_Boop3 <- log(44/767) - LRM_Boop1 - LRM_Boop2 - Alpha_Dos
+LRM_Boop3
+```
+
+We find that Alpha = -3.57, Beta1 = 0.257, Beta2 = 0.468, and Beta3 = --0.018.
+
+Thus, the logistic regression model to express the probability of being conservative is:\
+Log(Conservative) = -3.57 +0.257 + 0.468 - 0.018
+
+### Exercise 9.3: GSS (My Choice of Variables! Again!)
+
+Now, let's run a 2x2x2 table with whatever three GSS variables I choose. I choose to use "sex" (Y), "padeg" (X1), and "race" (X2), and they're recoded as follows:
+
+```{r}
+# Recoding these fellas: 
+harveytwo <- gss18 |> 
+  select(sex, padeg, race) |> 
+  haven::zap_missing() |> 
+  haven::zap_labels() |> 
+  drop_na() |> 
+  mutate(new_sex = if_else(sex == 1, 1L, 0L), 
+         sex = if_else(new_sex == 1, "Female", "Male"), 
+         pops = if_else(padeg == 1, 1L, 0L), 
+         padeg = if_else(pops <= 5, "HS or Less", "BA or More"), 
+         new_race = if_else(race == 1, 1L, 0L), 
+         race = if_else(new_race == 1, "1 / White", "0 / Not White")) |> 
+  relocate(sex, new_sex, padeg, pops, race, new_race)
+```
+
+Having recoded them, now let's assemble the fancy 2x2x2 table:
+
+```{r}
+# A 2x2x2 contingency table, a la Andres' code: 
+tabtab <- table(cp = harveytwo$new_sex, pops_degree = harveytwo$pops, race = harveytwo$new_race)
+tabtab
+
+# Now let's clock this same table the way that Steve had it set up: 
+as_tibble(tabtab) |> 
+  mutate(cp = if_else(cp == "1", "Female", "Male")) |> 
+  pivot_wider(names_from = cp, values_from = n)
+```
+
+#### Expressing sex (Y), padeg (X1), and race (X2) as a linear probability model
+
+```{r}
+# To calculate Alpha, find Pr(Y = 1 | X1 = 0 and X2 = 0)
+Alpha_Last <- 117 / (117+137)
+Alpha_Last 
+
+# To calculate Beta1: Pr(Y = 1 | X1 = 1 and X2 = 0) - Alpha 
+Last_Boop1 <- 73 / (73+90) - Alpha_Last
+Last_Boop1
+  
+# Beta2: Pr(Y = 1 | X1 = 0 and X2 = 1) - Alpha 
+Last_Boop2 <- 326 / (326+386) - Alpha_Last 
+Last_Boop2
+
+# Beta3: Pr(Y = 1 | X1 = 1 and X2 = 1) - Beta1 - Beta2 - Alpha 
+Kevin <- 304 / (304+332) - Last_Boop1 - Last_Boop2 - Alpha_Last 
+Kevin
+# Shoutout Kevin. 
+```
+
+We find that Alpha = 0.461, Beta1 = -0.013, Beta2 = -0.003, and Beta3 = 0.033.
+
+Thus, the linear probability model to express the probability of being female is:\
+Pr(Female) = 0.461 -0.013 -0.003 +0.033
+
+#### Expressing sex (Y), padeg (X1), and race (X2) as a logistic regression model
+
+```{r}
+# To find the logarithms of this fancy 2x2x2 table, we want to take the log of the "female"/"male" for each of the coordinating portions of the table. 
+
+# Starting with alpha, wherein Y = 1 where X1 = 0 and X2 = 0 
+Last_Alpha <- log(117/137)
+Last_Alpha
+
+# Beta1: Wherein Y = 1 | X1 = 1 and X2 = 0 - Alpha 
+LRM_Beep1 <- log(73/90) - Last_Alpha
+LRM_Beep1
+  
+# Beta2: Wherein Y = 1 | X1 = 0 and X2 = 1 - Alpha 
+LRM_Beep2 <- log(326/386) - Last_Alpha
+LRM_Beep2
+
+#Beta3 
+LRM_Beep3 <- log(304/332) - LRM_Beep1 - LRM_Beep2 - Last_Alpha
+LRM_Beep3
+```
+
+We find that Alpha = -0.158, Beta1 = -0.052, Beta2 = -0.011, and Beta3 = 0.132.
+
+Thus, the logistic regression model to express the probability of being female is:\
+Log(Female) = -0.158 -0.052 -0.011 +0.132

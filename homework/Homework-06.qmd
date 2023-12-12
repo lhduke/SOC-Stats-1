@@ -1,0 +1,276 @@
+---
+title: "Homework #6"
+format: html
+author: L. Harvey 
+embed-resources: TRUE 
+editor: visual
+---
+
+# Homework #6
+
+Background Code:
+
+```{r}
+library(tidyverse)
+library(infer)
+library(janitor) # for the "table" functions
+library(gssr) # to access GSS data
+theme_set(theme_light(base_family = "Optima"))
+```
+
+## Exercise 6.1.2
+
+### Choosing Sample Size
+
+For this portion of the homework, we're asked to design a survey to estimate the proportion of individuals who will vote Democrat. We want to figure out how many folks need to be polled in order to have a standard error (SE) of less than 5%.
+
+To do so, refer to Andres' sample homework code:
+
+```{r}
+simulated_draws <- 1000 # This is the number of "draws" 
+poll_size <- 1000 # This is the sample size
+draws <- rbinom(simulated_draws, size = poll_size, prob = 0.53) 
+proportions <- draws/poll_size
+
+# To check where the average of this sample falls, we use the following code: 
+mean(proportions)
+
+# This function tells us that the average is 0.530251 (AKA: Our "true value" is 0.53)
+
+# To find the standard error (SE) of this sample, use the following code: 
+se <- sd(proportions)
+se
+
+# We get a SE of 0.0152
+```
+
+Having established the sample code, we want to figure out how many people we need to sample in order to have an SE of less than 5% (0.05). To start:
+
+```{r}
+# Create a new tibble for standard error (SE): 
+se_tib <- tibble(
+  n = c(1:1000), 
+  stderr = sqrt((0.52*0.47/n)
+))
+
+# Having established the tibble, we can now filter within it to find how many folks we need to poll in order to have an SE of less than 0.05: 
+se_tib |> filter(se_tib$stderr <0.05)
+```
+
+After we run the filtered command in the code chunk above, we receive a table that tells us which n will give us which SE amount. An n of 98 gives us an SE of 0.0499 (rounds up to EQUAL 0.05, which is no good); An n of 99 gives us an SE of 0.0497 (also rounds up to EQUAL 0.05), and our winner here is an n of 100 people (which gives us an SE of 0.0494).
+
+In short: As we want a SE of less than 0.05, the corresponding n to achieve this SE is 100 people.
+
+## Exercise 6.1.5
+
+### Null Hypothesis Statistical Testing
+
+Again, start with the background code for the homework:
+
+```{r}
+# Background code re: prop_hat: 
+set.seed(321)
+one_dataset <- rbinom(poll_size, size = 1, prob = 0.53)
+prop_hat <- mean(one_dataset)
+
+# Some things to keep in mind: 
+## The null hypothesis is prob = 0.5 
+## Simulated draws and poll size are both still 1000
+
+sim_draws2 <- 1000 ## Number of simulated draws
+poll_size <- 1000 ## Sample size
+draws2 <- rbinom(sim_draws2, size = 1000, prob = 0.50)
+null <- draws2/1000
+null <- data.frame(null)
+### Stupid damn data frame didn't want to run. Took me 10 minutes to figure out why I couldn't run the next step of my code. 
+```
+
+Given the sample homework code, we now want to find the probability of observing the "true" value (p = 0.53) under the null and the probability of observing prop_hat under the null (as well as answering if this is statistically significant if the confidence level is set to 0.05).
+
+```{r}
+# Filtering to find the probability of observing p = 0.53 under the null hypothesis: 
+fivethree_null <- null |> 
+  filter(null==0.53)
+
+# Now, to find the probability of observation: 
+observations <- nrow(fivethree_null)
+observations/1000
+```
+
+```{r}
+# To find the probability of observing prop_hat under the null:
+phat_set <- rbinom(1000, size = 1, prob = 0.5)
+prop_hat <- mean(phat_set)
+prop_hat
+
+# And is this statistically significant if the confidence level is set to 0.05? 
+draws2 <-rbinom(1000, size = 1000, prob = 0.5)
+null <- draws/1000
+
+# How many null samples equal prop_hat? 
+probability <-sum(null == prop_hat) / length(null)
+probability 
+
+# Lastly, let's check for significance (i.e. if the alpha s equal to 0.05): 
+alpha <- 0.05
+significant<-probability<=alpha 
+significant
+
+# YES, the alpha is significant for this data. 
+```
+
+## Exercise 6.1.7
+
+### Verifying that standard error corresponds to sd(theta_distribution)
+
+```{r}
+# Let's start with the homework code: 
+
+p1 <- 0.5
+n1 <- 120
+p2 <- 0.6
+n2 <- 90
+
+S <- 100000
+draws1 <- rbinom(S, size = n1, prob = p1) 
+proportions1 <- draws1 / n1 
+draws2 <- rbinom(S, size = n2, prob = p2)
+proportions2 <- draws2 / n2
+theta_distribution <- proportions1 - proportions2
+sd(theta_distribution)
+
+# This gives us 0.0689 etc. 
+
+# If we compare this with the sd(theta_distribution), we should get the same answer. Let's try it out: 
+sqrt((p1*(1-p1)/n1)+(p2*(1-p2)/n2))
+
+# Whoooo! 
+```
+
+## Exercise 6.1.8
+
+### Practicing making comparisons of proportions
+
+We're given the following statement:\
+"A randomized experiment is performed within a survey. 1000 people are contacted. Half of the people contacted are promised a \$5 incentive to participate, and half are not promised an incentive. The result is a 50% response rate among the treated \[experimental\] group and 40% response rate among the control group. Give an estimate and standard error of the difference in proportions."
+
+```{r}
+# Let's break this down into blocks of code: 
+treat <- 500
+treatless <- 500 
+
+response_rate_treat <- 0.5 # This is the 50% response rate for the experimental group 
+response_rate_treatless <- 0.4 # And this is the 40% response rate for the treatless losers 
+
+# Now that everything's coded, we want to create an estimate of the difference in proportions between the two groups: 
+proportion_difference <- response_rate_treat - response_rate_treatless 
+proportion_difference 
+
+# Lastly, let's find the standard error of the difference in these two proportions by using the standard error formula: 
+se <- sqrt(
+  (response_rate_treat * (1 - response_rate_treatless) / treat) + (response_rate_treatless) * (1 - response_rate_treatless) / treatless)
+
+# Finally, run the se command to find the standard error: 
+se
+```
+
+## But what about when we DO know the data?
+
+### Exercise 6.2
+
+```{r}
+# Per the homework, copy-and-paste this data chunk to access the relevant GSS data: 
+
+gss18 <- gss_get_yr(2018) 
+
+d <- gss18 |> 
+  select(sex, attend, polviews) |> 
+  haven::zap_missing() |> 
+  mutate(sex = as_factor(sex)) |> 
+  haven::zap_labels() |> 
+  drop_na()
+
+glimpse(d)
+```
+
+### Exercise 6.2.1
+
+Checking out the GSS data set tells us that the "attend" and "polviews" variables represent the following:
+
+1.  "Attend" refers to a respondent's self-report of the frequency with which they attend religious services. It's measured from 0 ("never") to 8 ("several times a week"); the higher the number, the higher the frequency of the respondent attending religious services.
+2.  "Polviews" refers to a respondent's self-report of their political leanings (i.e. the extent to which they consider themselves politically "liberal" or "conservative"). It's measured from 0 ("extremely liberal") to 7 ("extremely conservative"); in this case, responding with a 4 aligns the respondent with a moderate political view.
+
+### Exercise 6.2.2
+
+```{r}
+d <- d |> 
+  mutate(conservative = if_else(polviews >= 5, 1L, 0L),
+         weekly = if_else(attend >= 7, 1L, 0L)) |> 
+  select(conservative, weekly) |> 
+  drop_na() |> 
+  mutate(polviews = if_else(conservative == 1, "Conservative", "Not_Conservative"))
+
+# Now, create a cross-tabulation: 
+d |>
+  tabyl(conservative, weekly) |> 
+  adorn_percentages("row") |>
+  adorn_pct_formatting(digits = 2) |> 
+  adorn_ns()
+```
+
+### Exercise 6.2.3
+
+```{r}
+# Let's figure out if the difference in proportions between "conservative" and "weekly" is statistically significant: 
+
+# Create a "bootstrap" distribution: 
+boot_dist <- 
+  d |> 
+  specify(weekly ~ polviews) |> 
+  generate(reps = 1000,
+           type = "bootstrap") |> 
+  calculate(stat = "diff in means",
+            order = c("Conservative", "Not_Conservative"))
+
+# Create a confidence interval to test the distribution: 
+conf_int <- boot_dist |> 
+  get_confidence_interval(level = .95)
+
+# Then, run the confidence interval test: 
+conf_int
+
+# Visualizing the distribution with confidence intervals: 
+boot_dist |> visualize() + shade_ci(conf_int)
+
+# Now, test the hypotheses: 
+observed_difference <- mean(d$weekly[d$polviews=="Conservative"]) - 
+  mean(d$weekly[d$polviews=="Not_Conservative"])
+
+# Build the null hypothesis distribution: 
+null_dist <- d |> 
+  specify(weekly ~ polviews) |> 
+  hypothesize(null = "independence") |> 
+  generate(reps = 1000,
+           type = "permute") |> 
+  calculate(stat = "diff in means",
+            order = c("Conservative", "Not_Conservative")) 
+
+# Find the p value: 
+null_dist |> 
+  get_p_value(observed_difference, 
+              direction = "both")
+```
+
+### Exercise 6.2.3
+
+Interpreting through geom_tile:
+
+At first glance, this is a daunting-looking graphic. If we break it down, we see that "polviews" is consistently on the x-axis and "attend" is on the y-axis. In each of the graphics, the mean appears as the lightest column or row.
+
+The first graphic, "Counts," appears to indicate that most respondents identified their political views with a 4, making the self-report of politically "moderate" the most common.
+
+The second graphic, "Row Percentages," appears to indicate that most respondents self-reported attending religious services as a 0 (i.e. "never" attending religious services).
+
+Lastly, the third graphic, "Column Percentages," shows the breakdown of each column on the basis of political views and attendance---namely, demonstrating that respondents who identified as "moderate" appear to attend religious services between the range of 0-8 ("never" to "several times a week").
+
+![](images/Screenshot%202023-10-09%20at%2011.17.52%20PM.png)

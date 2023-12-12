@@ -1,0 +1,649 @@
+---
+title: "Homework #8"
+format: html
+author: L. Harvey 
+embed-resources: TRUE 
+echo: FALSE 
+editor: visual
+---
+
+# Homework #8
+
+## Background Code
+
+```{r}
+library(tidyverse)
+library(gssr)
+library(janitor)
+library(conflicted)
+conflicts_prefer(dplyr::filter)
+library(infer)
+
+gss18 <- gss_get_yr(2018) 
+```
+
+## Exercise 8.2: Contingency Table Time!
+
+For this week's assignment, we are asked to create eight (8) contingency tables and then describe and evaluate the variables. Without further adieu:
+
+### Contingency Table #1: wrkslf / polviews
+
+```{r}
+# Keep in mind that wrkslf and polviews are the RESPONSE VARIABLES—we want to mutate/recode their internal categories as binary variables. 
+t1 <- gss18 |> 
+  select(wrkslf, polviews) |> 
+  haven::zap_missing() |> 
+  haven::zap_labels() |> 
+  drop_na() |> 
+  mutate(self_work = if_else(wrkslf == 1, 1L, 0L), 
+        wrkslf = if_else(self_work == 1, "Self Work", "Work for Others"), 
+        conservative = if_else(polviews == 7, 1L, 0L), 
+        polviews = if_else(conservative == 1, "Conservative", "Not Conservative")) |> 
+  relocate(wrkslf, self_work, polviews, conservative) 
+
+### Note: When constructing the if_else statement, it follows the formula of listing the categories, then listing true, false as the subsequent values. 
+
+# Now let's create a table to view this visually: 
+table(self_work = t1$self_work, conservative = t1$conservative)
+```
+
+#### Contingency Table #1 Analysis
+
+[Question 1: Describe both variables.]{.underline}\
+Variable "wrkslf" asks respondents to respond in a binary fashion ("yes" or "no") if they work for themselves or if they work for someone else. Variable "polviews" asks respondents to rank their political ideologies on a scale from 1 ("extremely liberal") to 7 ("extremely conservative").
+
+[Question 2: If they aren't already, make the variables binary so that each of them consists of values of zero or one.]{.underline}\
+Variable "wrkslf" was recoded into "self_work" (1 = "Self Work" and 0 = "Work for Others"), and "polviews" was recoded into "conservative" (1 = "Conservative" and 0 = "Not Conservative").
+
+[Question 3: Choose a variable to call Y and a variable to call X.\
+]{.underline}Y = "wrkslf" where:\
+1 = Work for Self\
+0 = Work for Others\
+X = "polviews" where:\
+1 = Conservative\
+0 = Not Conservative
+
+[Question 4: Express the relationship between **Y** and **X** as a linear probability model (i.e. calculate the corresponding coefficients). Write one sentence interpreting the Beta coefficient.]{.underline}
+
+```{r}
+# First, let's rerun the table: 
+table(self_work = t1$self_work, conservative = t1$conservative)
+```
+
+We want to find the corresponding coefficients for Alpha = Pr(Y = 1 \| X = 0) and Beta = Pr(Y = 1 \| X = 1) - Pr(Y = 1 \| X = 0). In order to find Alpha, we need to do the following:
+
+```{r}
+# Given X = 0, what's the probability that Y = 1? 
+210 / 2073 
+# Alpha = .1013
+```
+
+Now let's find Beta. Again, the Beta formula is as follows: Beta = Pr(Y = 1 \| X = 1) - Pr(Y = 1 \| X = 0)
+
+```{r}
+# Let's find Pr(Y = 1 given X = 1): 
+FirstProb <- 14 / 97 
+# Now find Pr(Y = 1 given X = 0): 
+SecondProb <- 210 / 2073 
+# Lastly, let's subtract the two answers: 
+FirstProb - SecondProb
+# This tells us that our Beta is .043
+```
+
+**Interpreting the Beta Coefficient:** The Beta coefficient here indicates that people who are conservative, compared to those who are not, are 4.3 percentage points more likely to work for themselves (as opposed to working for an employer).
+
+[Question 5: Explain the relationship between **Y** and **X** as a logistic regression model (i.e. calculate the corresponding coefficients). Write one sentence interpreting the Beta coefficient.]{.underline}
+
+```{r}
+# Again, let's rerun the table: 
+table(self_work = t1$self_work, conservative = t1$conservative) 
+
+# We want to first find Alpha: 
+Alpha <- (210 / 2073) / (1862/2073) 
+# This tells us that Alpha = .1128 
+
+# Now we want to plug our Alpha into the Beta formula in order to find the log odds: 
+log((14/97) / (83/97)) - Alpha
+
+# This tells us that our Beta is -1.893
+```
+
+**Interpreting the Beta Coefficient:** The Beta coefficient here indicates that people who are conservative, compared to those who are not, have a -1.893 less likely log odds to work for themselves (as opposed to working for an employer).
+
+### Contingency Table #2: cappun / polviews
+
+```{r}
+# Again: cappun and polviews are the RESPONSE VARIABLES—we want to mutate/recode their internal categories as binary variables. 
+t2 <- gss18 |> 
+    select(cappun, polviews) |> 
+    haven::zap_missing() |> 
+    haven::zap_labels() |> 
+    drop_na() |> 
+    mutate(new_cap = if_else(cappun == 1, 1L, 0L), 
+           cappun = if_else(new_cap == 1, "Favor", "Oppose"), 
+           conservative = if_else(polviews == 7, 1L, 0L), 
+           polviews = if_else(conservative == 1, "Conservative", "Not Conservative")) |> 
+  relocate(cappun, new_cap, polviews, conservative) 
+
+# Now let's create a table to view this visually: 
+table(new_cap = t2$new_cap, conservative = t2$conservative)
+```
+
+#### Contingency Table #2 Analysis
+
+[Question 1: Describe both variables.]{.underline}\
+Variable "cappun" asks respondents to respond in a binary fashion ("yes" or "no") if they support or oppose capital punishment. Variable "polviews" asks respondents to rank their political ideologies on a scale from 1 ("extremely liberal") to 7 ("extremely conservative").
+
+[Question 2: If they aren't already, make the variables binary so that each of them consists of values of zero or one.]{.underline}\
+Variable "cappun" was recoded into "new_cap" (1 = "Favor" and 0 = "Oppose"), and "polviews" was recoded into "conservative" (1 = "Conservative" and 0 = "Not Conservative").
+
+[Question 3: Choose a variable to call Y and a variable to call X.\
+]{.underline}Y = "cappun" where:\
+1 = Favor\
+0 = Oppose\
+X = "polviews" where:\
+1 = Conservative\
+0 = Not Conservative
+
+[Question 4: Express the relationship between **Y** and **X** as a linear probability model (i.e. calculate the corresponding coefficients). Write one sentence interpreting the Beta coefficient.]{.underline}
+
+```{r}
+# First, let's rerun the table: 
+table(new_cap = t2$new_cap, conservative = t2$conservative)
+```
+
+We want to find the corresponding coefficients for Alpha = Pr(Y = 1 \| X = 0) and Beta = Pr(Y = 1 \| X = 1) - Pr(Y = 1 \| X = 0). In order to find Alpha, we need to do the following:
+
+```{r}
+# Given X = 0, what's the probability that Y = 1? 
+ 1258 / 2018 
+# Alpha = 0.6234
+```
+
+Now let's find Beta. Again, the Beta formula is as follows: Beta = Pr(Y = 1 \| X = 1) - Pr(Y = 1 \| X = 0)
+
+```{r}
+# Let's find Pr(Y = 1 given X = 1): 
+Prob_Kill_Em <- 77 / 94 
+# Now find Pr(Y = 1 given X = 0): 
+Prob_Dont <- 17 / 94 
+# Lastly, let's subtract the two answers: 
+Prob_Kill_Em - Prob_Dont
+# This tells us that our Beta is 0.6383
+```
+
+**Interpreting the Beta Coefficient:** The Beta coefficient here indicates that people who are conservative, compared to those who are not, are 63.8 percentage points more likely to support capital punishment.
+
+[Question 5: Explain the relationship between **Y** and **X** as a logistic regression model (i.e. calculate the corresponding coefficients). Write one sentence interpreting the Beta coefficient.]{.underline}
+
+```{r}
+# Again, let's rerun the table: 
+table(new_cap = t2$new_cap, conservative = t2$conservative) 
+
+# We want to first find Alpha: 
+T2_Alpha <- (1258 / 2018) / (760 / 2018) 
+# This tells us that Alpha = 1.6553
+
+# Now we want to plug our Alpha into the Beta formula in order to find the log odds: 
+log((77 / 94) / (17 / 94)) - T2_Alpha
+
+# This tells us that our Beta is -0.1446
+```
+
+**Interpreting the Beta Coefficient:** The Beta coefficient here indicates that people who are conservative, compared to those who are not, have a -0.1446 lower log odds of supporting capital punishment.
+
+### Contingency Table #3: cappun / suicide3
+
+```{r}
+# Again: cappun and suicide3 are the RESPONSE VARIABLES—we want to mutate/recode their internal categories as binary variables. 
+t3 <- gss18 |> 
+    select(cappun, suicide3) |> 
+    haven::zap_missing() |> 
+    haven::zap_labels() |> 
+    drop_na() |> 
+    mutate(new_cap = if_else(cappun == 1, 1L, 0L), 
+           cappun = if_else(new_cap == 1, "Favor", "Oppose"), 
+           new_suicide = if_else(suicide3 == 1, 1L, 0L), 
+           suicide3 = if_else(new_suicide == 1, "Okay to Commit", "Not Okay")) |> 
+  relocate(cappun, new_cap, suicide3, new_suicide) 
+
+# Now let's create a table to view this visually: 
+table(new_cap = t3$new_cap, new_suicide = t3$new_suicide)
+```
+
+#### Contingency Table #3 Analysis
+
+[Question 1: Describe both variables.]{.underline}\
+Variable "cappun" asks respondents to respond in a binary fashion ("yes" or "no") if they support or oppose capital punishment. Variable "suicide3" asks respondents to respond in a binary fashion ("yes" or "no") if they think a person has the right to commit suicide if they have "dishonored" their family (what kind of weird question is this\...?).
+
+[Question 2: If they aren't already, make the variables binary so that each of them consists of values of zero or one.]{.underline}\
+Variable "cappun" was recoded into "new_cap" (1 = "Favor" and 0 = "Oppose"), and "suicide3" was recoded into "new_suicide" (1 = "Okay to Commit" and 0 = "Not Okay").
+
+[Question 3: Choose a variable to call Y and a variable to call X.\
+]{.underline}Y = "cappun" where:\
+1 = Favor\
+0 = Oppose\
+X = "suicide3" where:\
+1 = Okay to Commit\
+0 = Not Okay
+
+[Question 4: Express the relationship between **Y** and **X** as a linear probability model (i.e. calculate the corresponding coefficients). Write one sentence interpreting the Beta coefficient.]{.underline}
+
+```{r}
+# Let's run this table: 
+table(new_cap = t3$new_cap, new_suicide = t3$new_suicide)
+```
+
+We want to find the corresponding coefficients for Alpha = Pr(Y = 1 \| X = 0) and Beta = Pr(Y = 1 \| X = 1) - Pr(Y = 1 \| X = 0). In order to find Alpha, we need to do the following:
+
+```{r}
+# Given X = 0, what's the probability that Y = 1? 
+T3_Alpha <- 810 / 1254 
+# Our Alpha here is 0.6459
+```
+
+Now let's find Beta. Again, the Beta formula is as follows: Beta = Pr(Y = 1 \| X = 1) - Pr(Y = 1 \| X = 0)
+
+```{r}
+# Let's find Pr(Y = 1 given X = 1): 
+Prob_Yes_Both <- 118 / 185 
+# Now find Pr(Y = 1 given X = 0): 
+Prob_No_Capital <- 67 / 185 
+# Lastly, let's subtract the two answers: 
+Prob_Yes_Both - Prob_No_Capital
+# This tells us that our Beta is 0.2757
+```
+
+**Interpreting the Beta Coefficient:** The Beta coefficient here indicates that people who support an individual's right to commit suicide if they have "dishonored" their family, compared to those who do not support the right to suicide, are 27.57 percentage points more likely to support capital punishment.
+
+[Question 5: Explain the relationship between **Y** and **X** as a logistic regression model (i.e. calculate the corresponding coefficients). Write one sentence interpreting the Beta coefficient.]{.underline}
+
+```{r}
+# Rerunning the table: 
+table(new_cap = t3$new_cap, new_suicide = t3$new_suicide) 
+
+# We want to first find Alpha: 
+T3_Alpha <- (810 / 1254) / (444 / 1254) 
+# This tells us that Alpha = 1.824
+
+# Now we want to plug our Alpha into the Beta formula in order to find the log odds: 
+log((118 / 185) / (67 / 185)) - T3_Alpha
+
+# This tells us that our Beta is -1.258
+```
+
+**Interpreting the Beta Coefficient:** The Beta coefficient here indicates that people who support an individual's right to commit suicide if they have "dishonored" their family, compared to those who do not support the right to suicide, have a -1.258 lower log odds of supporting capital punishment.
+
+### Contingency Table #4: suicide3 / degree
+
+```{r}
+# Out here getting real saucy with the tables! 
+t4 <- gss18 |> 
+    select(suicide3, degree) |> 
+    haven::zap_missing() |> 
+    haven::zap_labels() |> 
+    drop_na() |> 
+    mutate(new_degree = if_else(degree == 1, 1L, 0L), 
+           degree = if_else(new_degree <= 5, "HS or Less", "BA or More"), 
+           new_suicide = if_else(suicide3 == 1, 1L, 0L), 
+           suicide3 = if_else(new_suicide == 1, "Okay to Commit", "Not Okay")) |> 
+  relocate(degree, new_degree, suicide3, new_suicide) 
+
+# Now let's create a table to view this visually: 
+table(new_suicide = t4$new_suicide, new_degree = t4$new_degree)
+```
+
+#### Contingency Table #4 Analysis
+
+[Question 1: Describe both variables.]{.underline}\
+Variable "degree" asks respondents to report on a scale the maximum educational degree they have attained, ranging from 0 ("Less than high school") to 4 ("Graduate"). Variable "suicide3" asks respondents to respond in a binary fashion ("yes" or "no") if they think a person has the right to commit suicide if they have "dishonored" their family.
+
+[Question 2: If they aren't already, make the variables binary so that each of them consists of values of zero or one.]{.underline}\
+Variable "degree" was recoded into "new_degree" (0 = "HS or Less" and 1 = "BA or More"), and "suicide3" was recoded into "new_suicide" (1 = "Okay to Commit" and 0 = "Not Okay").
+
+[Question 3: Choose a variable to call Y and a variable to call X.\
+]{.underline}Y = "degree" where:\
+0 = HS or Less\
+1 = BA or More\
+X = "suicide3" where:\
+1 = Okay to Commit\
+0 = Not Okay
+
+[Question 4: Express the relationship between **Y** and **X** as a linear probability model (i.e. calculate the corresponding coefficients). Write one sentence interpreting the Beta coefficient.]{.underline}
+
+```{r}
+# Given X = 0, what's the probability that Y = 1? 
+T4_Alpha <- 697 / 1345 
+# Our Alpha here is 0.5182
+```
+
+Now let's find Beta. Again, the Beta formula is as follows: Beta = Pr(Y = 1 \| X = 1) - Pr(Y = 1 \| X = 0)
+
+```{r}
+# Let's find Pr(Y = 1 given X = 1): 
+Prob_Both_Yes <-  82 / 194 
+# Now find Pr(Y = 1 given X = 0): 
+Prob_No_BA <- 112 / 194 
+# Lastly, let's subtract the two answers: 
+Prob_Both_Yes - Prob_No_BA
+# This tells us that our Beta is -0.1546
+```
+
+**Interpreting the Beta Coefficient:** The Beta coefficient here indicates that people who support an individual's right to commit suicide if they have "dishonored" their family, are 15.46 percentage points less likely to complete a BA or more.
+
+[Question 5: Explain the relationship between **Y** and **X** as a logistic regression model (i.e. calculate the corresponding coefficients). Write one sentence interpreting the Beta coefficient.]{.underline}
+
+```{r}
+# Rerunning the table: 
+table(new_suicide = t4$new_suicide, new_degree = t4$new_degree)
+
+# We want to first find Alpha: 
+T4_Alpha <- (697 / 1345) / (648 / 1345) 
+# This tells us that Alpha = 1.076
+
+# Now we want to plug our Alpha into the Beta formula in order to find the log odds: 
+log((82 / 194) / (112 / 194)) - T4_Alpha
+
+# This tells us that our Beta is -1.387
+```
+
+**Interpreting the Beta Coefficient:** The Beta coefficient here indicates that people who support an individual's right to commit suicide if they have "dishonored" their family, have -1.387 lower log odds to complete a BA or more.
+
+### Contingency Table #5: degree / padeg
+
+```{r}
+# More tabling! 
+t5 <- gss18 |> 
+    select(degree, padeg) |> 
+    haven::zap_missing() |> 
+    haven::zap_labels() |> 
+    drop_na() |> 
+    mutate(new_degree = if_else(degree == 1, 1L, 0L), 
+           degree = if_else(new_degree <= 5, "HS or Less", "BA or More"), 
+           new_pops = if_else(padeg == 1, 1L, 0L), 
+           padeg = if_else(new_pops <= 5, "HS or Less", "BA or More")) |> 
+  relocate(degree, new_degree, padeg, new_pops)
+
+# Now let's create a table to view this visually: 
+table(new_degree = t5$new_degree, new_pops = t5$new_pops)
+```
+
+#### Contingency Table #5 Analysis
+
+[Question 1: Describe both variables.]{.underline}\
+Variable "degree" asks respondents to report on a scale the maximum educational degree they have attained, ranging from 0 ("Less than high school") to 4 ("Graduate"). Variable "padeg" asks respondents to report the maximum educational degree their father attained, ranging from 0 ("Less than high school") to 4 ("Graduate").
+
+[Question 2: If they aren't already, make the variables binary so that each of them consists of values of zero or one.]{.underline}\
+Variable "degree" was recoded into "new_degree" (0 = "HS or Less" and 1 = "BA or More"), and "padeg" was recoded into "new_pops" (0 = "HS or Less" and 1 = "BA or More").
+
+[Question 3: Choose a variable to call Y and a variable to call X.\
+]{.underline}Y = "degree" where:\
+0 = HS or Less\
+1 = BA or More\
+X = "padeg" where:\
+0 = HS or Less\
+1 = BA or More
+
+[Question 4: Express the relationship between **Y** and **X** as a linear probability model (i.e. calculate the corresponding coefficients). Write one sentence interpreting the Beta coefficient.]{.underline}
+
+```{r}
+# Given X = 0, what's the probability that Y = 1? 
+T5_Alpha <- 350 / 914
+# Our Alpha here is 0.3829
+```
+
+Now let's find Beta. Again, the Beta formula is as follows: Beta = Pr(Y = 1 \| X = 1) - Pr(Y = 1 \| X = 0)
+
+```{r}
+# Let's find Pr(Y = 1 given X = 1): 
+Prob_YAAAS <- 449 / 851 
+# Now find Pr(Y = 1 given X = 0): 
+Prob_NOOO <-  350 / 914
+# Lastly, let's subtract the two answers: 
+Prob_YAAAS - Prob_NOOO
+# This tells us that our Beta is 0.1447
+```
+
+**Interpreting the Beta Coefficient:** The Beta coefficient here indicates that people whose fathers have completed at least a BA are 14.47 percentage points more likely to complete a BA or more.
+
+[Question 5: Explain the relationship between **Y** and **X** as a logistic regression model (i.e. calculate the corresponding coefficients). Write one sentence interpreting the Beta coefficient.]{.underline}
+
+```{r}
+# Rerunning the table: 
+table(new_degree = t5$new_degree, new_pops = t5$new_pops)
+
+# We want to first find Alpha: 
+T5_Alpha <- (350 / 914) / (564 / 914) 
+# This tells us that Alpha = 0.6206
+
+# Now we want to plug our Alpha into the Beta formula in order to find the log odds: 
+log((449 / 851) / (402 / 851)) - T5_Alpha
+
+# This tells us that our Beta is -0.5099
+```
+
+**Interpreting the Beta Coefficient:** The Beta coefficient here indicates that people whose fathers have not completed at least a BA have -0.5099 log odds to complete a BA or more.
+
+### Contingency Table #6: cappun / sex
+
+```{r}
+t6 <- gss18 |> 
+    select(cappun, sex) |> 
+    haven::zap_missing() |> 
+    haven::zap_labels() |> 
+    drop_na() |> 
+    mutate(new_cap = if_else(cappun == 1, 1L, 0L), 
+           cappun = if_else(new_cap == 1, "Favor", "Oppose"), 
+           new_sex = if_else(sex == 1, 1L, 0L), 
+           sex = if_else(new_sex == 1, "Female", "Male")) |> 
+  relocate(cappun, new_cap, sex, new_sex) 
+
+# Let's clock the table: 
+table(new_cap = t6$new_cap, new_sex = t6$new_sex)
+```
+
+#### Contingency Table #6 Analysis
+
+[Question 1: Describe both variables.]{.underline}\
+Variable "cappun" asks respondents to respond in a binary fashion ("yes" or "no") if they support or oppose capital punishment. Variable "sex" asks respondents to report their sex in a binary fashion ("female" or "male").
+
+[Question 2: If they aren't already, make the variables binary so that each of them consists of values of zero or one.]{.underline}\
+Variable "cappun" was recoded into "new_cap" (1 = "Favor" and 0 = "Oppose"), and "sex" was recoded into "new_sex" (1 = "Female" and 0 = "Male").
+
+[Question 3: Choose a variable to call Y and a variable to call X.\
+]{.underline}Y = "cappun" where:\
+0 = Oppose\
+1 = Favor\
+X = "sex" where:\
+0 = Male\
+1 = Female
+
+[Question 4: Express the relationship between **Y** and **X** as a linear probability model (i.e. calculate the corresponding coefficients). Write one sentence interpreting the Beta coefficient.]{.underline}
+
+```{r}
+# Given X = 0, what's the probability that Y = 1? 
+T6_Alpha <- 706 / 1184 
+# Our Alpha here is 0.5963
+```
+
+Finding Beta with this formula: Beta = Pr(Y = 1 \| X = 1) - Pr(Y = 1 \| X = 0)
+
+```{r}
+# Let's find Pr(Y = 1 given X = 1): 
+Prob_YAAAS2 <-  330 / 1009
+# Now find Pr(Y = 1 given X = 0): 
+Prob_NOOO2 <-  679 / 1009
+# Lastly, let's subtract the two answers: 
+Prob_YAAAS2 - Prob_NOOO2
+# This tells us that our Beta is -0.3459
+```
+
+**Interpreting the Beta Coefficient:** The Beta coefficient here indicates that people who identify as female, compared to those who identify as male, are 34.59 percentage points less likely to support capital punishment.
+
+[Question 5: Explain the relationship between **Y** and **X** as a logistic regression model (i.e. calculate the corresponding coefficients). Write one sentence interpreting the Beta coefficient.]{.underline}
+
+```{r}
+# Rerunning the table: 
+table(new_cap = t6$new_cap, new_sex = t6$new_sex)
+
+# We want to first find Alpha: 
+T6_Alpha <- (706 / 1184) / (478 / 1184) 
+# This tells us that Alpha = 1.477
+
+# Now we want to plug our Alpha into the Beta formula in order to find the log odds: 
+log((679 / 1009) / (330 / 1009)) - T6_Alpha
+
+# This tells us that our Beta is -0.7555
+```
+
+**Interpreting the Beta Coefficient:** The Beta coefficient here indicates that people who identify as female, compared to those who identify as male, have a -0.7555 log odds of supporting capital punishment.
+
+### Contingency Table #7: sex / race
+
+```{r}
+# Table number 7, baby! 
+t7 <- gss18 |> 
+    select(race, sex) |> 
+    haven::zap_missing() |> 
+    haven::zap_labels() |> 
+    drop_na() |> 
+    mutate(new_race = if_else(race == 1, 1L, 0L), 
+           race = if_else(new_race == 1, "White", "Non White"), 
+           new_sex = if_else(sex == 1, 1L, 0L), 
+           sex = if_else(new_sex == 1, "Female", "Male")) |> 
+  relocate(race, new_race, sex, new_sex) 
+
+# Let's clock the table: 
+table(new_race = t7$new_race, new_sex = t7$new_sex)
+```
+
+#### Contingency Table #7 Analysis
+
+[Question 1: Describe both variables.]{.underline}\
+Variable "race" asks respondents to identify their race as one of three options ("White," "Black," or "Other"). Variable "sex" asks respondents to report their sex in a binary fashion ("female" or "male").
+
+[Question 2: If they aren't already, make the variables binary so that each of them consists of values of zero or one.]{.underline}\
+Variable "race" was recoded into "new_race" (1 = "White" and 0 = "Not White"), and "sex" was recoded into "new_sex" (1 = "Female" and 0 = "Male").
+
+[Question 3: Choose a variable to call Y and a variable to call X.\
+]{.underline}Y = "race" where:\
+0 = Not White\
+1 = White\
+X = "sex" where:\
+0 = Male\
+1 = Female
+
+[Question 4: Express the relationship between **Y** and **X** as a linear probability model (i.e. calculate the corresponding coefficients). Write one sentence interpreting the Beta coefficient.]{.underline}
+
+```{r}
+# Given X = 0, what's the probability that Y = 1? 
+spinach <- 924 / 1296
+# Our Alpha here is 0.7129
+```
+
+Finding Beta with this formula: Beta = Pr(Y = 1 \| X = 1) - Pr(Y = 1 \| X = 0)
+
+```{r}
+# Let's find Pr(Y = 1 given X = 1): 
+white_lady <-  769 / 1052
+# Now find Pr(Y = 1 given X = 0): 
+white_fella <-  924 / 1296
+# Lastly, let's subtract the two answers: 
+white_lady - white_fella
+# This tells us that our Beta is 0.018
+```
+
+**Interpreting the Beta Coefficient:** The Beta coefficient here indicates that people who identify as female, compared to those who identify as male, are 18.03 percentage points more likely to be white.
+
+[Question 5: Explain the relationship between **Y** and **X** as a logistic regression model (i.e. calculate the corresponding coefficients). Write one sentence interpreting the Beta coefficient.]{.underline}
+
+```{r}
+# Rerunning the table: 
+table(new_race = t7$new_race, new_sex = t7$new_sex)
+
+# We want to first find Alpha: 
+T7_Alpha <- (924 / 1296) / (372 / 1296) 
+# This tells us that Alpha = 2.484
+
+# Now we want to plug our Alpha into the Beta formula in order to find the log odds: 
+log((769 / 1052) / (283 / 1052)) - T7_Alpha
+
+# This tells us that our Beta is -1.484
+```
+
+**Interpreting the Beta Coefficient:** The Beta coefficient here indicates that people who identify as female, compared to those who identify as male, have a -1.484 log odds of being white.
+
+### Last One! Contingency Table #8: race / born
+
+```{r}
+# Last table! Last table! 
+finish_line <- gss18 |> 
+    select(race, born) |> 
+    haven::zap_missing() |> 
+    haven::zap_labels() |> 
+    drop_na() |> 
+    mutate(new_race = if_else(race == 1, 1L, 0L), 
+           race = if_else(new_race == 1, "White", "Non White"), 
+           new_born = if_else(born == 1, 1L, 0L), 
+           born = if_else(new_born == 1, "USA", "Non-USA")) |> 
+  relocate(race, new_race, born, new_born) 
+
+# Let's clock the table: 
+table(new_race = finish_line$new_race, new_born = finish_line$new_born)
+```
+
+[Question 1: Describe both variables.]{.underline}\
+Variable "race" asks respondents to identify their race as one of three options ("White," "Black," or "Other"). Variable "born" asks respondents to report if they were born in the USA or outside of it ("yes" or "no").
+
+[Question 2: If they aren't already, make the variables binary so that each of them consists of values of zero or one.]{.underline}\
+Variable "race" was recoded into "new_race" (1 = "White" and 0 = "Not White"), and "born" was recoded into "new_born" (1 = "USA" and 0 = "Non-USA").
+
+[Question 3: Choose a variable to call Y and a variable to call X.\
+]{.underline}Y = "race" where:\
+0 = Not White\
+1 = White\
+X = "born" where:\
+0 = Non-USA\
+1 = USA
+
+[Question 4: Express the relationship between **Y** and **X** as a linear probability model (i.e. calculate the corresponding coefficients). Write one sentence interpreting the Beta coefficient.]{.underline}
+
+```{r}
+# Given X = 0, what's the probability that Y = 1? 
+tabliest <- 139 / 302
+# Our Alpha here is 0.4603
+```
+
+Finding Beta with this formula: Beta = Pr(Y = 1 \| X = 1) - Pr(Y = 1 \| X = 0)
+
+```{r}
+# Let's find Pr(Y = 1 given X = 1): 
+USA_white <- 1554 / 2045
+# Now find Pr(Y = 1 given X = 0): 
+foreign_white <- 139 / 302
+# Lastly, let's subtract the two answers: 
+USA_white - foreign_white 
+# This tells us that our Beta is 0.2996
+```
+
+**Interpreting the Beta Coefficient:** The Beta coefficient here indicates that people who identify as being born in the USA, compared to those who identify as being born outside of the country, are 29.96 percentage points more likely to be white.
+
+[Question 5: Explain the relationship between **Y** and **X** as a logistic regression model (i.e. calculate the corresponding coefficients). Write one sentence interpreting the Beta coefficient.]{.underline}
+
+```{r}
+# Rerunning the table: 
+table(new_race = finish_line$new_race, new_born = finish_line$new_born)
+
+# We want to first find Alpha: 
+Last_Alpha <- ( 139 / 302 ) / ( 163 / 302) 
+# This tells us that Alpha = 0.8528
+
+# Now we want to plug our Alpha into the Beta formula in order to find the log odds: 
+log((1554 / 2045) / (491 / 2045)) - Last_Alpha
+
+# This tells us that our Beta is 0.2994
+```
+
+**Interpreting the Beta Coefficient:** The Beta coefficient here indicates that people who identify as being born in the USA, compared to those who identify as being born outside of the country, have .2994 higher log odds of being white.
+
+(Please note: I really wanted to add in a picture of some animal celebrating here, but I couldn't find the code to insert a picture. Instead, here's a smiley face :)) )

@@ -1,0 +1,265 @@
+---
+title: "Homework #2"
+author: L. Harvey 
+date: last-modified
+format: 
+  html:
+    toc: true
+    embed-resources: true
+editor: visual
+---
+
+## **Section 4.2.5**
+
+### Question #1!
+
+```{r}
+#| message: false
+library(nycflights13)
+library(tidyverse)
+library(dplyr)
+flights |> filter(arr_delay > 120)
+```
+
+```{r}
+library(nycflights13)
+library(tidyverse)
+library(dplyr)
+flights |> filter(dest == "IAH" | dest == "HOU")
+```
+
+```{r}
+flights |> filter(carrier == "UA" | carrier == "AA" | carrier == "DL")
+```
+
+```{r}
+flights |> filter(month == 7 | month == 8 | month == 9)
+```
+
+```{r}
+flights |> filter(dep_delay <= 0 & arr_delay >120)
+```
+
+```{r}
+flights |> filter(dep_delay >= 60 & arr_delay <30)
+```
+
+### Question #2!
+
+```{r}
+flights |> filter(dep_delay == max(dep_delay, na.rm = TRUE))
+```
+
+```{r}
+flights |> arrange(flights, sched_dep_time)
+```
+
+### Question #3!
+
+```{r}
+flights |> arrange(air_time)
+```
+
+### Question #4!
+
+```{r}
+flights |> distinct(month,day)
+```
+
+### Question #5!
+
+```{r}
+flights |> arrange(distance)
+```
+
+```{r}
+flights |> arrange(desc(distance))
+```
+
+### Question #6!
+
+1.  In a data set of this size, it doesn't matter what order you use the "filter" or "arrange" tools, as both will effectively sort the data frame, as the "arrange" and "filter" tools both serve to organize the data in a more meaningful fashion. In a larger data set, however, it would likely prove beneficial to "filter" whichever rows you're interested in manipulating and then using "arrange" to further analyze the data.
+
+## **Section 4.3.5**
+
+### Question #1
+
+1.  The three variables dep_time, sched_dep_time, and dep_delay are related because they're all evaluations of planes' departure times. The sched_dep_time variable indicates the intended plane departure time, the dep_time variable indicates the ACTUAL plane departure time, and the dep_delay variable indicates the difference between sched_dep_time and dep_time.
+
+### Question #2
+
+```{r}
+#| eval: false
+View(flights$dep_time)
+View(flights$dep_delay)
+View(flights$arr_time)
+View(flights$arr_delay)
+```
+
+```{r}
+glimpse(flights$dep_time)
+glimpse(flights$dep_delay)
+glimpse(flights$arr_time)
+glimpse(flights$arr_delay)
+```
+
+### Question #3
+
+```{r}
+flights |> select(arr_delay, arr_delay)
+```
+
+1.  If you specify the name of a variable twice in a "select" command, the requested column will only appear once, despite your inclusion of the variable multiple times.
+
+### Question #4
+
+```{r}
+flights |> select(any_of(c("year","month","dep_delay","arr_delay")))
+```
+
+1.  The any_of() function is another way of using the "select" function to identify desired variables. The any_of() function will identify if the desired variable is present in the data frame and generate the data frame with that variable (if present).
+
+### Question #5
+
+```{r}
+flights |> select(contains("TIME"))
+```
+
+1.  The result of running the following code is surprising in that it is not case-sensitive. The select helpers do not appear to be case-sensitive to upper or lower-case variables. However, if we try to run a new version of the code, changing the default of non-case-sensitivity to being case-sensitive, then the function will only work for all-capitalized variables. EX:
+
+```{r}
+flights |> select(contains("TIME"))
+flights |> select(contains ("TIME", ignore.case = FALSE))
+```
+
+### Question #6
+
+```{r}
+flights |> rename(air_time_min = air_time)
+flights |> relocate(air_time)
+```
+
+### Question #7
+
+```{r}
+#| error: true
+flights |> 
+  select(tailnum) |> 
+  arrange(arr_delay)
+```
+
+1.  This code doesn't work because "arr_delay" does not exist as a variable in the data frame. The error indicates that this variable is not present in this data set.
+
+## **Section 4.5.7**
+
+### Question #1
+
+```{r}
+flights |> 
+  group_by(carrier) |> 
+  summarize(avg_delay = mean(dep_delay, na.rm = TRUE)) |> 
+  arrange(desc(avg_delay))
+```
+
+1.  The carrier with the worst average delays is "F9."
+
+### Question #2
+
+```{r}
+flights |> 
+  group_by(dest) |> 
+  slice_max(dep_delay, n = 1) |> 
+  relocate(dest)
+```
+
+### Question #3
+
+```{r}
+ggplot(data = flights, mapping = aes(x = day, y = dep_delay)) + geom_point()
+```
+
+### Question #4
+
+1.  If you supply a negative n to slice_min() and friends, you receive the same output you would if you used the command listed below.
+
+```{r}
+flights |> slice_min(dep_delay, n = -1)
+```
+
+will give us the same output as if we ran:
+
+```{r}
+flights |> 
+  arrange(dep_delay)
+```
+
+### Question #5
+
+1.  The count() function is a faster way to group objects based on their column name. It also names the number of entries in the data frame. The "sort" argument contained in the count() function, if TRUE, will "show the largest groups at the top."
+
+### Question #6
+
+```{r}
+df <- tibble(
+  x = 1:5,
+  y = c("a", "b", "a", "a", "b"),
+  z = c("K", "K", "L", "L", "K")
+)
+```
+
+a.  I anticipate that using this command:
+
+```{r}
+df |> group_by(y)
+```
+
+the tiny data frame will produce a simple output of columns. And it did!
+
+b.  I anticipate that using this command:
+
+```{r}
+df |> arrange(y) 
+```
+
+the output will populate y as a differently-organized column sorted in an ascending order. The output then showed that the columns in (y) were organized in alphabetical order. This is different than the output for group_by() because the group_by() shows the y column as "a," "b," "a," "a," "b," etc.
+
+c.  I anticipate that using this command:
+
+```{r}
+df |> group_by(y) |> 
+  summarize(mean_x = mean(x))
+```
+
+the output will generate the average of column y as "a" and "b" outputs. The pipeline in this command sorts the mean outputs of "a" and "b" values in the y column.
+
+d.  I anticipate that using this command:
+
+```{r}
+df |> group_by(y, z) |> 
+  summarize(mean_x = mean(x))
+```
+
+will generate different combinations of y and z. The command did group the variables as different combinations. Then I received the following message: " 'summarise()' has grouped output by 'y'. You can override using the '.groups' argument." This message denotes that a new group has been generated by the command.
+
+e.  I anticipate that this output:
+
+```{r}
+df |> group_by(y, z) |> 
+  summarize(mean_x = mean(x), .groups = "drop")
+```
+
+will drop one of the groups from the above summary. The output is almost the same as part (d), but the above command discarded the grouping of the y and z output from part (d).
+
+f.  I anticipate that these commands:
+
+```{r}
+df |> group_by(y, z) |> 
+  summarize(mean_x = mean(x))
+```
+
+```{r}
+df |> group_by (y, z) |> 
+  mutate(mean_x = mean(x))
+```
+
+will summarize the averages of the x variable column and create a new column for the average of the x variable, respectively. The group_by/summarize command did create a summary similar to part (d), while the group_by/mutate command created a new column for the "mean(x)" variable.

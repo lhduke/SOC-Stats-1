@@ -1,0 +1,54 @@
+---
+title: "HW #1 (Take 2)"
+format: html
+editor: visual
+---
+
+```{r}
+library(tidyverse)
+library(gssr)
+
+gss18 <- gss_get_yr(2018)
+```
+
+## Some Bullshit is happening
+
+```{r}
+letters[17]
+```
+
+```{r}
+letters[seq(2, 26, by = 2)]
+```
+
+```{r}
+d <- mtcars
+
+x <- runif(1000)
+
+mean(x)
+```
+
+asdfasd
+
+```{r}
+kevin <- runif(1000)
+
+d2 <- gss18 |> 
+  select(sex, xmarsex) |> 
+  drop_na() |> 
+  mutate(female = if_else(sex == 2, 1L, 0L), 
+         sex = if_else(female == 1, "Female", "Male"))
+
+durham <- tibble(
+            female = rbinom(285000, 1, .52)
+)
+
+durham_sample <- durham |> 
+  slice_sample(n = 100, 
+               replace = FALSE)
+  
+durham_sample |> 
+  group_by(female) |> 
+  summarize(count = n())
+```

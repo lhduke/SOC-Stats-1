@@ -1,0 +1,191 @@
+---
+title: "Homework #5"
+author: L. Harvey 
+embed: TRUE 
+echo: FALSE
+format: html
+editor: visual
+---
+
+# Homework Assignment #5
+
+## Week 5 (Notes)
+
+Get familiar with the following distributions/functions in R:
+
+```{r}
+?distributions #This command gives us a list of distributions in the R Studio package, including details on different distibution types and a breakdown of their arguments. 
+```
+
+Example Code:
+
+```{r}
+input <- 350
+output <- pbinom(input, size = 1000, prob = 0.345623)
+qbinom(output, size = 1000, prob = 0.345623)
+```
+
+Background Code:
+
+```{r}
+library(tidyverse)
+theme_set(theme_light())
+```
+
+## Exercise 5.2.1
+
+```{r}
+# For testing Equation 5.1 with dbinom: 
+dbinom(x = 1, size = 1, prob = 2/3)
+dbinom(x = 0, size = 1, prob = 2/3)
+dbinom(x = 4, size = 1, prob = 2/3)
+
+# For testing Equation 5.2 with qbinom: 
+qbinom(-1, 1, 2/3)
+qbinom(0, 1, 2/3)
+qbinom(1, 1, 2/3)
+qbinom(5, 1, 2/3)
+
+# Use rbinom to generate 100 samples, then graph those results: 
+hwsim <- rbinom(n = 100, size = 1, prob = 2/3)
+hwframe <- data.frame(hwsim)
+       
+ggplot(hwframe, aes(hwsim)) +
+  geom_bar()
+```
+
+## Exercise 5.3.1
+
+If we flip a fair coin four times, there are five possible outcomes (where "Heads" = "H" and "Tails" = "T"), but there are sixteen EVENTS possible in this sample space:
+
+0 Heads:
+
+-   T, T, T, T
+
+1 Heads:
+
+-   T, T, T, H
+
+-   T, T, H, T
+
+-   T, H, T, T
+
+-   H, T, T, T
+
+2 Heads:
+
+-   T, T, H, H
+
+-   T, H, H, T
+
+-   H, H, T, T
+
+-   H, T, H, T
+
+-   T, H, T, H
+
+-   H, T, T, H
+
+3 Heads:
+
+-   T, H, H, H
+
+-   H, T, H, H
+
+-   H, H, T, H
+
+-   H, H, H, T
+
+4 Heads:
+
+-   H, H, H, H
+
+## Exercise 5.3.2
+
+```{r}
+# How many possible ways are there to get X = 0, X = 1, X = 2, X = 3, and X = 4?
+
+# To find X = 0 
+dbinom(0, 4, 0.5)
+# To find X = 1
+dbinom(1, 4, 0.5)
+# To find X = 2
+dbinom(2, 4, 0.5)
+# To find X = 3
+dbinom(3, 4, 0.5)
+# To find X = 4
+dbinom(4, 4, 0.5)
+choose()
+```
+
+The probability that X = 2 is 37.5%, which we can verify with the code below:
+
+```{r}
+# Verifying that the probability of X = 2 is 37.5%
+dbinom(2, 4, 0.5)
+
+# It worked!!!! Now let's use the right R function to calculate the probability of X being less than 1: 
+pbinom(1, 4, 0.5)
+```
+
+## Exercise 5.3.3
+
+```{r}
+# Use rbinom to generate 1000 samples from the Binomial distribution with size = 5 and probability = 2/3
+
+# First, create values for this sample: 
+hwsampler <- rbinom(1000, size = 5, prob = 2/3)
+
+# Next, create the frame/dresser: 
+big_boy_dresser <- data.frame(hwsampler)
+
+# Now we can create a ggplot to show the results: 
+ggplot(big_boy_dresser, 
+       aes(x = hwsampler)) + 
+  geom_bar()
+
+# Lastly, let's estimate the probability that X is an even number, using the mean() function on the 1000 values in our hwsampler dataset. 
+likelihood_even <- mean(hwsampler %% 2 == 0) 
+likelihood_even
+```
+
+## Exercise 5.3.5
+
+Think back to the shenanigans of Sections 5.3.1 and 5.3.2.
+
+```{r}
+ # Find the probability that X = 2 when probability = 1/3 and n = 4. 
+dbinom(2, 4, 1/3)
+```
+
+## Exercise 5.3.7
+
+```{r}
+# If probability = 2/3 and n = 15, use dbinom() and pinom() to verify the results of equations 5.3 and 5.4
+# (Also note: I was super confused by what we were supposed to do with this exercise. How do we "verify" an equation other than solving it with dbinom or pbinom?)
+
+# Using dbinom) to verify Equation 5.3:
+dbinom(x = seq(0, 15), 15, 2/3)
+
+# Using pbinom) to verify Equation 5.4:
+pbinom(q = seq(0, 15), size = 15, prob = 2/3)
+```
+
+## Exercise 5.4.1
+
+```{r}
+# Steve Code
+library(tidyverse)
+grid <- tibble(prob = seq(0, 1, by = 0.001))
+grid$like <- dbinom(21, 47, grid$prob)
+
+# Homework Code 
+grid <- grid |> 
+  mutate(clike_raw = cumsum(like), 
+         clike_normalized = clike_raw / sum(like)
+         )
+
+grid |> filter (prob == 0.588)
+
+# After normalizing clike, we find a probability of 97.5% that "prob" is equal to or greater than .588. 
+```

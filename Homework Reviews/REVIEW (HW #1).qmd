@@ -1,0 +1,222 @@
+---
+title: "REVIEW: Homework #1"
+author: L. Harvey 
+format: html
+embed-resources: true
+editor: visual
+editor_options: 
+  chunk_output_type: inline
+---
+
+## It's Reading Week, Baby!
+
+That means it's time to review homework assignments, find any bugs, and essentially just study your ass off. Without further adieu, let's run through homework assignment #1 (again)!
+
+## Exercise 1.1: Testing Commands
+
+Try typing `typeof(mtcars)` and `class(mtcars)` in the console to see what happens.
+
+```{r}
+typeof(mtcars)
+class(mtcars)
+```
+
+Running the `typeof(mtcars)` command produces a result of "list." This is because a data frame is a list of atomic vectors that have the same length (i.e. the number of rows in the data set).
+
+Running the `class(mtcars)` command tells us that `mtcars` is classified as a data frame.
+
+Now type the following chunks of code into the console, understand what they do, and briefly describe what they do:
+
+```{r}
+nrow(mtcars)
+```
+
+`nrow(mtcars)` = This tells us the number of observations in the `mtcars` data set.
+
+```{r}
+ncol(mtcars)
+```
+
+`ncol(mtcars)` = This tells us the number of columns in the `mtcars` data set.
+
+```{r}
+length(mtcars)
+```
+
+`length(mtcars)` = This tells us the number of columns in the data set.
+
+```{r}
+dim(mtcars)
+```
+
+`dim(mtcars)` = This tells us the dimensions of the data set (i.e. 32 rows and 11 columns).
+
+```{r}
+rownames(mtcars)
+```
+
+`rownames`(mtcars) = This command gives us the name of all of the rows in this data set (i.e. "Mazda RX4," "Valiant," "Duster 360," etc.)
+
+```{r}
+colnames(mtcars)
+```
+
+`colnames(mtcars)` = This command tells us the names of the columns in the data set (i.e. "mpg," "cyl," "hp," etc.)
+
+## Exercise 1.2: Scalars
+
+For this exercise, it's time to practice creating vectors of 1 length (AKA "scalars").
+
+Try assigning a different value to `TRUE` versus to `T`.
+
+```{r}
+#| error: true
+T <- 123 
+TRUE <- 123
+```
+
+What went wrong here?
+
+Any value can be assigned to `T` because we are creating it as a new value. However, R Studio won't let us modify the `TRUE` value because `TRUE` is stored as a "reserved keyword" in R (meaning that we can't override it).
+
+## Exercise 1.3: Implicit Coercion
+
+Practice using implicit coercion in R Studio.
+
+Here are some examples of how to cocatenate different atomic vectors:
+
+```{r}
+lgl <- c(TRUE, FALSE, NA)
+int <- c(1L, 6L, NA, 10L) 
+dbl <- c(1, NA, 2.5, 4.5) 
+chr <- c(NA, "these are", "some strings") 
+kevin <- c(NA, "and this", "is a kevin test") 
+```
+
+If we try to concatenate different atomic vector types together, R Studio defers to implicit coercion, which changes the new concatenated vector type in the following order: logical → integer → double → character.
+
+To check our understanding of the vector coercion rule, predict the output of the following uses of `c()`:
+
+```{r}
+c(1, FALSE)
+c("a", 1) 
+c(TRUE, 1L)
+```
+
+I predict that these will read as follows:\
+1. Logical ❌\
+2. Integer ❌\
+3. Logical ❌
+
+What went wrong here? I gave priority to the wrong end of the vector type on implicit coercion! (See "Dummies" notes for further clarity.)
+
+## Exercise 1.4: Explicit Coercion
+
+Explicit coercion is when users deliberately change the vectors in the data set into another datatype. This happens using functions like `as.logical()`, `as.integer()`, `as.double()`, or `as.character()`.
+
+For this exercise, what happens when you use `as.integer` on `FALSE` and `TRUE`? What values do they get coerced into?
+
+```{r}
+as.integer(FALSE, TRUE)
+```
+
+This code didn't work correctly---why? Because I forgot to include the concatenate function (which is, like, the entire point). Let's try it again:
+
+```{r}
+as.integer(c(FALSE, TRUE))
+```
+
+Perfect. This explicitly coerces the values of `FALSE`, `TRUE` into 0 and 1, respectively.
+
+## Exercise 1.5: Using Implicit Conversion
+
+The following code chunk creates a logical vector of size 75:
+
+```{r}
+x <- sample(c(TRUE, FALSE), size = 75, replace = TRUE)
+str(x)
+```
+
+(Note: The `str` command used here is almost identical to dplyr's `glimpse` function.)
+
+For exercise 1.5, use the following commands to interpret the data:\
+1. Use sum(x) to get the number of `TRUE` values.\
+2. Use mean(x) to get the proportion of `TRUE` values.\
+3. Verify that mean(x) and sum(x) / length(x) give the same value.
+
+```{r}
+sum(x) 
+mean(x) 
+sum(x) / length(x)
+```
+
+All of these values check out!
+
+**Subsetting Practice**
+
+```{r}
+x <- list(chr, lgl, letters)
+str(x)
+```
+
+```{r}
+names(x) <- c("chr", "lgl", "alphabet")
+str(x)
+```
+
+```{r}
+x$alphabet
+```
+
+## Exercise 1.6: Bracket Operators
+
+What's the difference between `mtcars["mpg"]` and `mtcars[["mpg"]]`?
+
+Which of the following two is true?
+
+```{r}
+identical(mtcars["mpg"], mtcars$mpg)
+identical(mtcars[["mpg"]], mtcars$mpg)
+```
+
+## Exercise 1.7: Integer Subsetting
+
+Use the `letters` object in tandem with the \[ operator to do the following:
+
+```{r}
+letters[17]
+```
+
+1\. Extract the 17th value of `letters`.
+
+```{r}
+letters[17]
+```
+
+Use the `letters` object in tandem with the \[ operator to do the following:
+
+2\. Create a sequence of even numbers from 2 to 26 and use that to subset `letters`.
+
+```{r}
+letters[seq(2, 26, by = 2)]
+```
+
+3\. Use 8:12 to subset `letters`.
+
+```{r}
+letters[8:12]
+```
+
+## Exercise 1.8: Replacing with a Missing Value
+
+Understanding what we now know about replacement, replace the 18th value of the `letters` subset with an NA value.
+
+```{r}
+letters[18] <- NA
+```
+
+Testing indices:
+
+```{r}
+mtcars[1:2]
+```

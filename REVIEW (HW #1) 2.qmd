@@ -1,0 +1,12 @@
+---
+title: "REVIEW: Homework #1"
+author: L. Harvey 
+format: html
+editor: visual
+---
+
+## It's Reading Week, Baby! 
+
+That means it's time to review homework assignments, find any bugs, and essentially just study your ass off. Without further adieu, let's run through homework assignment #1 again.
+
+## Exercise 1.1. 
